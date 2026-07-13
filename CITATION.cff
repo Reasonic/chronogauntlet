@@ -23,7 +23,7 @@ keywords:
   - timezone
   - differential-testing
 license: MIT
-repository-code: "https://github.com/Singularis-Research/chronogauntlet"
+repository-code: "https://github.com/Reasonic/chronogauntlet"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21347437"

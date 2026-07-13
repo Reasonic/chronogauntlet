@@ -106,7 +106,7 @@ ENTRIES = [
 
 def main():
     out = {
-        "source": "ChronoGauntlet benchmark (github.com/Singularis-Research/chronogauntlet)",
+        "source": "ChronoGauntlet benchmark (github.com/Reasonic/chronogauntlet)",
         "tzdata_expected_values": TZDATA,
         "note": "expected UTC values are computed from the tzdata above at "
                 "generation time; regenerate after a tzdata upgrade "
