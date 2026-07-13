@@ -40,8 +40,15 @@ def main():
 
     A("\n## Family decomposition (bare, all models)")
     for f, pf in o["per_family"].items():
+        sc = pf["slip_ci_cluster"]
         A(f"- {f}: P(wrong) {100*pf['p_wrong']:.1f}% | P(slip|wrong) {100*pf['p_slip_given_wrong']:.1f}% "
-          f"| any-silent {100*pf['rate_any']:.1f}% | n {pf['n']}")
+          f"CI[{100*sc[0]:.1f},{100*sc[1]:.1f}] | any-silent {100*pf['rate_any']:.1f}% | n {pf['n']}")
+    sc = o["slip_contrast"]
+    A(f"- SLIP CONTRAST dst+cal vs epoch+parsing: {100*sc['slip_a']:.1f}% vs {100*sc['slip_b']:.1f}% "
+      f"| diff {100*sc['diff']:+.1f}pp CI[{100*sc['diff_ci'][0]:+.1f},{100*sc['diff_ci'][1]:+.1f}] "
+      f"| ratio {sc['ratio']:.1f}x CI[{sc['ratio_ci'][0]:.1f},{sc['ratio_ci'][1]:.1f}]")
+    d = o["slip_contrast_dst_vs_epoch"]
+    A(f"  pairwise dst-vs-epoch: diff {100*d['diff']:+.1f}pp CI[{100*d['diff_ci'][0]:+.1f},{100*d['diff_ci'][1]:+.1f}]")
     c = o["concentration"]
     A(f"- concentration: top-10 units = {100*c['top10_share']:.0f}% of {c['total_bare_silents']} bare silents")
     A("  top units: " + ", ".join(f"{u['task']}·{u['language']}({u['silents']})" for u in c["top10_units"]))
@@ -84,6 +91,22 @@ def main():
     A("  remove-opus rho=-1.0 (the non-monotonicity is carried by opus alone)")
     A("- language silent-share-of-wrong diff (py-js): 59.5% vs 8.8%, 95% cluster CI [+42.5,+58.5] pp")
     A("- coverage: 216/216 mutation-verified pins; cross-validation 959/959 rows")
+    # round-3 controls (regenerate via analysis/test_strength.py, analysis/contamination.py)
+    try:
+        ts = json.load(open("results/campaign/test_strength.json"))
+        a, b = ts["pooled_contrast"]["dst_calendar"], ts["pooled_contrast"]["epoch_parsing"]
+        A(f"- test-strength control (mechanical mutants, n={ts['n_mutants']}): mutant-slip "
+          f"dst+cal {100*a['slip']:.0f}% CI[{100*a['slip_ci'][0]:.0f},{100*a['slip_ci'][1]:.0f}] "
+          f"vs epoch+parsing {100*b['slip']:.0f}% CI[{100*b['slip_ci'][0]:.0f},{100*b['slip_ci'][1]:.0f}]")
+        cont = json.load(open("results/campaign/contamination.json"))
+        p = cont["pooled"]
+        A(f"- contamination split (famous vs obscure instants, {cont['tasks_with_both']} both-class tasks, "
+          f"python bare): {100*p['famous_rate']:.1f}% vs {100*p['obscure_rate']:.1f}% | diff "
+          f"{100*p['diff']:+.1f}pp CI[{100*p['diff_ci'][0]:+.1f},{100*p['diff_ci'][1]:+.1f}] "
+          f"(contamination predicts POSITIVE; observed negative) | sandbox re-runs "
+          f"{cont['n_rerun']}, outcome flips {cont['n_outcome_flips']}")
+    except FileNotFoundError:
+        A("- (test-strength / contamination JSONs not present — run their generators)")
     open("analysis/NUMBERS.md", "w").write("\n".join(L) + "\n")
     print(f"wrote analysis/NUMBERS.md ({len(L)} lines)")
     return 0

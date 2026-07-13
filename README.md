@@ -37,6 +37,10 @@ oracle independently catches **31 real, previously-fixed human bugs**; dispute r
 (human-adjudicated, 95% CI [0, 8.4%]). See the paper (linked above) and
 [`analysis/M4_ANALYSIS.md`](analysis/M4_ANALYSIS.md) for the full analysis.
 
+**For practitioners:** [`testpack/`](testpack/README.md) turns the slip-through
+finding into drop-in adversarial-instant tests (pytest + `node --test`) and an
+`is_dst` lint you can run on your codebase today.
+
 ## Framing
 
 A domain-specific instantiation of the weak-test-vs-strong-oracle paradigm (the EvalPlus
@@ -62,6 +66,8 @@ analysis/       m4_analysis.py (headline stats) -> M4_ANALYSIS.md, NUMBERS.md (n
                 make_numbers.py, make_figure.py, capability_correlate.py, progress.py,
                 human_baseline/ (real-bug validation pipeline), M5_ADJUDICATION_RESULT.md
 results/campaign/  frozen raw_*.jsonl (all 23,040 generations) + summaries
+testpack/       practitioner drop-in: adversarial-instant test templates (pytest +
+                node --test), the machine-readable instant catalog, is_dst lint
 verify_all.sh   one-command oracle reproduction (zero API cost, deterministic)
 Dockerfile      reproducible sandbox (pinned tzdata, TZ=UTC); build runs the selftest
 ```

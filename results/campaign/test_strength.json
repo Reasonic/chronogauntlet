@@ -1,0 +1,146 @@
+{
+ "n_mutants": 661,
+ "cap_hit_tasks": [],
+ "per_family": {
+  "calendar": {
+   "n_mutants": 104,
+   "n_oracle_detected": 103,
+   "happy_kill_rate": 0.6442307692307693,
+   "happy_kill_ci": [
+    0.42342342342342343,
+    0.8571428571428571
+   ],
+   "mutant_slip": 0.34951456310679613,
+   "mutant_slip_ci": [
+    0.13953488372093023,
+    0.57
+   ],
+   "equivalentish_share": 0.009615384615384616
+  },
+  "dst": {
+   "n_mutants": 101,
+   "n_oracle_detected": 86,
+   "happy_kill_rate": 0.5544554455445545,
+   "happy_kill_ci": [
+    0.42592592592592593,
+    0.6973684210526315
+   ],
+   "mutant_slip": 0.37209302325581395,
+   "mutant_slip_ci": [
+    0.2077922077922078,
+    0.5288461538461539
+   ],
+   "equivalentish_share": 0.12871287128712872
+  },
+  "epoch": {
+   "n_mutants": 45,
+   "n_oracle_detected": 42,
+   "happy_kill_rate": 0.7555555555555555,
+   "happy_kill_ci": [
+    0.49230769230769234,
+    1.0
+   ],
+   "mutant_slip": 0.19047619047619047,
+   "mutant_slip_ci": [
+    0.0,
+    0.42857142857142855
+   ],
+   "equivalentish_share": 0.06666666666666667
+  },
+  "naive_aware": {
+   "n_mutants": 307,
+   "n_oracle_detected": 251,
+   "happy_kill_rate": 0.6254071661237784,
+   "happy_kill_ci": [
+    0.5437956204379562,
+    0.7168674698795181
+   ],
+   "mutant_slip": 0.24701195219123506,
+   "mutant_slip_ci": [
+    0.17567567567567569,
+    0.32269503546099293
+   ],
+   "equivalentish_share": 0.17263843648208468
+  },
+  "parsing": {
+   "n_mutants": 39,
+   "n_oracle_detected": 27,
+   "happy_kill_rate": 0.7692307692307693,
+   "happy_kill_ci": [
+    0.6341463414634146,
+    0.9545454545454546
+   ],
+   "mutant_slip": 0.1111111111111111,
+   "mutant_slip_ci": [
+    0.0,
+    0.21875
+   ],
+   "equivalentish_share": 0.15384615384615385
+  },
+  "tz_conversion": {
+   "n_mutants": 65,
+   "n_oracle_detected": 58,
+   "happy_kill_rate": 0.7692307692307693,
+   "happy_kill_ci": [
+    0.6666666666666666,
+    0.8783783783783784
+   ],
+   "mutant_slip": 0.13793103448275862,
+   "mutant_slip_ci": [
+    0.058823529411764705,
+    0.23076923076923078
+   ],
+   "equivalentish_share": 0.1076923076923077
+  }
+ },
+ "pin_mutants": {
+  "naive_aware": {
+   "n": 82,
+   "happy_killed": 5,
+   "oracle_detected": 82
+  },
+  "tz_conversion": {
+   "n": 29,
+   "happy_killed": 3,
+   "oracle_detected": 29
+  },
+  "dst": {
+   "n": 39,
+   "happy_killed": 0,
+   "oracle_detected": 39
+  },
+  "epoch": {
+   "n": 31,
+   "happy_killed": 14,
+   "oracle_detected": 31
+  },
+  "parsing": {
+   "n": 17,
+   "happy_killed": 0,
+   "oracle_detected": 17
+  },
+  "calendar": {
+   "n": 18,
+   "happy_killed": 0,
+   "oracle_detected": 18
+  }
+ },
+ "pooled_contrast": {
+  "dst_calendar": {
+   "n_detected": 189,
+   "slip": 0.35978835978835977,
+   "slip_ci": [
+    0.22023809523809523,
+    0.49390243902439024
+   ]
+  },
+  "epoch_parsing": {
+   "n_detected": 69,
+   "slip": 0.15942028985507245,
+   "slip_ci": [
+    0.0,
+    0.3333333333333333
+   ]
+  }
+ }
+}

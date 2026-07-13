@@ -25,12 +25,14 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
 - opus vs sonnet (dropped claim): claude-sonnet-5 - claude-opus-4-8 | value [-3.54,+0.35] ns | any [-3.75,+0.28] ns
 
 ## Family decomposition (bare, all models)
-- calendar: P(wrong) 9.6% | P(slip|wrong) 42.4% | any-silent 4.1% | n 960
-- dst: P(wrong) 39.7% | P(slip|wrong) 43.1% | any-silent 17.1% | n 1728
-- epoch: P(wrong) 24.9% | P(slip|wrong) 7.8% | any-silent 1.9% | n 1344
-- naive_aware: P(wrong) 17.5% | P(slip|wrong) 21.5% | any-silent 3.8% | n 4032
-- parsing: P(wrong) 17.1% | P(slip|wrong) 8.1% | any-silent 1.4% | n 1152
-- tz_conversion: P(wrong) 19.9% | P(slip|wrong) 12.4% | any-silent 2.5% | n 2304
+- calendar: P(wrong) 9.6% | P(slip|wrong) 42.4% CI[22.4,63.6] | any-silent 4.1% | n 960
+- dst: P(wrong) 39.7% | P(slip|wrong) 43.1% CI[33.3,52.3] | any-silent 17.1% | n 1728
+- epoch: P(wrong) 24.9% | P(slip|wrong) 7.8% CI[1.8,16.4] | any-silent 1.9% | n 1344
+- naive_aware: P(wrong) 17.5% | P(slip|wrong) 21.5% CI[13.8,29.7] | any-silent 3.8% | n 4032
+- parsing: P(wrong) 17.1% | P(slip|wrong) 8.1% CI[0.7,19.7] | any-silent 1.4% | n 1152
+- tz_conversion: P(wrong) 19.9% | P(slip|wrong) 12.4% CI[4.0,20.7] | any-silent 2.5% | n 2304
+- SLIP CONTRAST dst+cal vs epoch+parsing: 43.1% vs 7.9% | diff +35.2pp CI[+24.2,+45.3] | ratio 5.5x CI[2.9,15.0]
+  pairwise dst-vs-epoch: diff +35.4pp CI[+22.8,+46.2]
 - concentration: top-10 units = 35% of 586 bare silents
   top units: C1_elapsed_across_dst·python(27), DSW5_sla_deadline_wall_hours·python(25), DSW5_sla_deadline_wall_hours·js(25), NAV10_build_local_rolling·python(24), D2_weekly_meeting_series·python(21), C2_resolve_gap_forward·python(19), DSW1_meter_billing_across_dst·python(18), DSW7_wall_duration_to_real_seconds·python(18), B2_meeting_in_zones·python(16), DSW4_overtime_across_25h_day·python(15)
 
@@ -72,3 +74,5 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
   remove-opus rho=-1.0 (the non-monotonicity is carried by opus alone)
 - language silent-share-of-wrong diff (py-js): 59.5% vs 8.8%, 95% cluster CI [+42.5,+58.5] pp
 - coverage: 216/216 mutation-verified pins; cross-validation 959/959 rows
+- test-strength control (mechanical mutants, n=661): mutant-slip dst+cal 36% CI[22,49] vs epoch+parsing 16% CI[0,33]
+- contamination split (famous vs obscure instants, 91 both-class tasks, python bare): 7.6% vs 4.0% | diff -3.7pp CI[-5.8,-2.0] (contamination predicts POSITIVE; observed negative) | sandbox re-runs 484, outcome flips 0

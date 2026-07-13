@@ -1,0 +1,109 @@
+{
+ "source": "ChronoGauntlet benchmark (github.com/Singularis-Research/chronogauntlet)",
+ "tzdata_expected_values": "2025.2",
+ "note": "expected UTC values are computed from the tzdata above at generation time; regenerate after a tzdata upgrade (TZ=UTC python -m testpack.make_instants)",
+ "instants": [
+  {
+   "kind": "nonexistent_wall_time",
+   "zone": "America/New_York",
+   "wall": "2024-03-10T02:30:00",
+   "why": "spring-forward gap: this wall time does not exist; naive localization silently fabricates an instant \u2014 code must raise or shift per an explicit policy"
+  },
+  {
+   "kind": "nonexistent_wall_time",
+   "zone": "Europe/London",
+   "wall": "2024-03-31T01:30:00",
+   "why": "spring-forward gap: this wall time does not exist; naive localization silently fabricates an instant \u2014 code must raise or shift per an explicit policy"
+  },
+  {
+   "kind": "nonexistent_wall_time",
+   "zone": "Australia/Lord_Howe",
+   "wall": "2024-10-06T02:15:00",
+   "why": "spring-forward gap: this wall time does not exist; naive localization silently fabricates an instant \u2014 code must raise or shift per an explicit policy"
+  },
+  {
+   "kind": "ambiguous_wall_time",
+   "zone": "America/New_York",
+   "wall": "2024-11-03T01:30:00",
+   "why": "fall-back overlap: this wall time happens twice; code must pick a policy (earlier/later) explicitly \u2014 pytz is_dst=False selects STANDARD time (the later occurrence), a documented misconception",
+   "earlier_utc": "2024-11-03T05:30:00+00:00",
+   "later_utc": "2024-11-03T06:30:00+00:00",
+   "offsets_differ": true
+  },
+  {
+   "kind": "ambiguous_wall_time",
+   "zone": "Europe/London",
+   "wall": "2024-10-27T01:30:00",
+   "why": "fall-back overlap: this wall time happens twice; code must pick a policy (earlier/later) explicitly \u2014 pytz is_dst=False selects STANDARD time (the later occurrence), a documented misconception",
+   "earlier_utc": "2024-10-27T00:30:00+00:00",
+   "later_utc": "2024-10-27T01:30:00+00:00",
+   "offsets_differ": true
+  },
+  {
+   "kind": "ambiguous_wall_time",
+   "zone": "Australia/Lord_Howe",
+   "wall": "2024-04-07T01:45:00",
+   "why": "fall-back overlap: this wall time happens twice; code must pick a policy (earlier/later) explicitly \u2014 pytz is_dst=False selects STANDARD time (the later occurrence), a documented misconception",
+   "earlier_utc": "2024-04-06T14:45:00+00:00",
+   "later_utc": "2024-04-06T15:15:00+00:00",
+   "offsets_differ": true
+  },
+  {
+   "kind": "elapsed_across_dst",
+   "why": "23:00 the night before spring-forward + '4 wall hours later' is only 3 absolute hours; wall arithmetic and instant arithmetic diverge",
+   "zone": "America/New_York",
+   "start_wall": "2024-03-09T23:00:00",
+   "wall_hours": 4,
+   "absolute_hours": 3
+  },
+  {
+   "kind": "fractional_offset",
+   "why": "+05:45 \u2014 breaks 'offsets are whole hours'",
+   "zone": "Asia/Kathmandu",
+   "sample_wall": "2024-06-15T12:00:00"
+  },
+  {
+   "kind": "skipped_calendar_day",
+   "why": "Apia skipped 2011-12-30 entirely (day does not exist in this zone)",
+   "zone": "Pacific/Apia",
+   "missing_date": "2011-12-30"
+  },
+  {
+   "kind": "pre_2007_us_rule",
+   "why": "US DST began first-Sunday-of-April before 2007: 2006-03-12 (the 'modern' second-Sunday-of-March date) was NOT a transition in 2006; the real 2006 spring-forward was 2006-04-02",
+   "zone": "America/New_York",
+   "non_transition": "2006-03-12",
+   "transition": "2006-04-02"
+  },
+  {
+   "kind": "leap_day",
+   "why": "Feb 29 arithmetic (age, anniversaries, +1 year)",
+   "date": "2024-02-29"
+  },
+  {
+   "kind": "century_non_leap",
+   "why": "2100 is NOT a leap year (divisible by 100, not by 400) \u2014 naive %4 checks fail",
+   "date": "2100-02-28"
+  },
+  {
+   "kind": "month_end_overflow",
+   "why": "Jan 31 + 1 month: policy must be pinned (clip to Feb 29/28 vs overflow to Mar) \u2014 library defaults differ",
+   "date": "2024-01-31"
+  },
+  {
+   "kind": "epoch_zero",
+   "why": "1970-01-01T00:00:00Z \u2014 off-by-one and timezone-of-epoch bugs",
+   "epoch_seconds": 0
+  },
+  {
+   "kind": "negative_epoch",
+   "why": "pre-1970 instants: floor vs trunc division diverges on negatives",
+   "epoch_seconds": -86400
+  },
+  {
+   "kind": "y2038",
+   "why": "2**31 seconds \u2014 signed-32 rollover",
+   "epoch_seconds": 2147483648
+  }
+ ]
+}

@@ -184,6 +184,79 @@ def _paired_diff_ci(rows_a, rows_b, pred, B=BOOT_B, seed=BOOT_SEED):
     return (diffs[int(0.025 * B)], diffs[int(0.975 * B) - 1])
 
 
+def _slip_clusters(rows):
+    """Per-task [wrong, silent] counts for the slip ratio (nonresponse excluded:
+    wrong = silent_any + overt, matching p_slip_given_wrong)."""
+    g = collections.defaultdict(lambda: [0, 0])
+    for r in rows:
+        if r["outcome"] == SILENT:
+            g[r["task"]][0] += 1
+            g[r["task"]][1] += 1
+        elif r["outcome"] == OVERT:
+            g[r["task"]][0] += 1
+    return list(g.values())
+
+
+def _slip_ci(rows, B=BOOT_B, seed=BOOT_SEED):
+    """Cluster bootstrap CI for P(slip|wrong) = silent/(silent+overt), resampling
+    TASK clusters and taking the ratio-of-sums per resample. Resamples with a
+    zero denominator are skipped (counted; rare)."""
+    clusters = _slip_clusters(rows)
+    if not clusters:
+        return (0.0, 0.0)
+    rng = random.Random(seed)
+    T = len(clusters)
+    rates, skipped = [], 0
+    while len(rates) < B and skipped < 10 * B:
+        w = s = 0
+        for _ in range(T):
+            c = clusters[rng.randrange(T)]
+            w += c[0]
+            s += c[1]
+        if w == 0:
+            skipped += 1
+            continue
+        rates.append(s / w)
+    rates.sort()
+    return (rates[int(0.025 * len(rates))], rates[int(0.975 * len(rates)) - 1])
+
+
+def _slip_contrast_ci(rows_a, rows_b, B=BOOT_B, seed=BOOT_SEED):
+    """Cluster bootstrap for slip(A) − slip(B) (pp) and slip(A)/slip(B) (ratio).
+
+    A and B are disjoint task sets (family groups), so their clusters are
+    resampled independently within each group; both statistics come from the
+    same resamples. Returns point estimates + percentile CIs."""
+    ca, cb = _slip_clusters(rows_a), _slip_clusters(rows_b)
+    pa = sum(c[1] for c in ca) / max(1, sum(c[0] for c in ca))
+    pb = sum(c[1] for c in cb) / max(1, sum(c[0] for c in cb))
+    rng = random.Random(seed)
+    Ta, Tb = len(ca), len(cb)
+    diffs, ratios, skipped = [], [], 0
+    while len(diffs) < B and skipped < 10 * B:
+        wa = sa = wb = sb = 0
+        for _ in range(Ta):
+            c = ca[rng.randrange(Ta)]
+            wa += c[0]; sa += c[1]
+        for _ in range(Tb):
+            c = cb[rng.randrange(Tb)]
+            wb += c[0]; sb += c[1]
+        if wa == 0 or wb == 0 or sb == 0:
+            skipped += 1
+            continue
+        diffs.append(sa / wa - sb / wb)
+        ratios.append((sa / wa) / (sb / wb))
+    diffs.sort(); ratios.sort()
+    n = len(diffs)
+    return {
+        "slip_a": pa, "slip_b": pb, "diff": pa - pb,
+        "diff_ci": [diffs[int(0.025 * n)], diffs[int(0.975 * n) - 1]],
+        "ratio": (pa / pb) if pb else None,
+        "ratio_ci": [ratios[int(0.025 * n)], ratios[int(0.975 * n) - 1]],
+        "n_boot": n, "n_skipped_zero_denominator": skipped,
+    }
+
+
 def silent_stats(rows, ci=True):
     c = _counts(rows)
     n, analyzable = c["n"], c["n"] - c["nonresponse"]
@@ -264,7 +337,18 @@ def analyze(R):
         wrong = s["silent_any"] + s["overt"]
         s["p_wrong"] = wrong / s["n"] if s["n"] else 0
         s["p_slip_given_wrong"] = s["silent_any"] / wrong if wrong else 0
+        s["slip_ci_cluster"] = list(_slip_ci(rows))  # round-3 fix: CI on the slip rate
         out["per_family"][fam] = s
+    # Round-3 must-fix 1: cluster CI on the HEADLINE slip contrast — the abstract's
+    # "DST/calendar slip at ~43% vs ~8% for epoch/parsing" needs an interval.
+    bare = [r for r in R if r["condition"] == "bare"]
+    out["slip_contrast"] = _slip_contrast_ci(
+        [r for r in bare if r["family"] in ("dst", "calendar")],
+        [r for r in bare if r["family"] in ("epoch", "parsing")])
+    # pairwise sensitivity: the single hardest-vs-easiest family pair
+    out["slip_contrast_dst_vs_epoch"] = _slip_contrast_ci(
+        [r for r in bare if r["family"] == "dst"],
+        [r for r in bare if r["family"] == "epoch"])
     # silent concentration: top-10 (task,language) units' share of all bare silents
     unit_counts = collections.Counter(
         (r["task"], r["language"]) for r in R
@@ -314,6 +398,9 @@ def analyze(R):
         out["mitigation_transitions"][m] = {
             "flow": {f"{a}->{b}": v for (a, b), v in sorted(flow.items())},
             "silent_exits": {t: flow.get(("S", t), 0) for t in "CSON"},
+            # round-3 fix (Table V reconstructibility): silent ENTRIES too, so
+            # Δsilent = (C→S + O→S + N→S) − (S→C + S→O + S→N) reconciles.
+            "silent_entries": {t: flow.get((t, "S"), 0) for t in "CON"},
             "new_silents_from_correct": flow.get(("C", "S"), 0),
             "d_silent": cm["silent_any"] - cb["silent_any"],
             "d_correct": cm["correct"] - cb["correct"],
@@ -323,6 +410,14 @@ def analyze(R):
             "bare_load": sum(1 for r in bare.values() if r["outcome"] == LOAD),
             "mit_load": sum(1 for r in mit.values() if r["outcome"] == LOAD),
         }
+        # self-check: the delta must reconcile exactly from the flows (complete pairing)
+        t = out["mitigation_transitions"][m]
+        entries = sum(t["silent_entries"].values())
+        exits = t["silent_exits"]["C"] + t["silent_exits"]["O"] + t["silent_exits"]["N"]
+        if t["d_silent"] != entries - exits:
+            raise AssertionError(
+                f"Table V reconciliation failed for {m}: Δsilent={t['d_silent']}"
+                f" but entries−exits={entries - exits}")
 
     # F. hidden-failure share (was "trust gap"/"false confidence")
     out["hidden_failure"] = {}
@@ -330,11 +425,17 @@ def analyze(R):
         cell = sub(R, model=m, condition="bare")
         n = len(cell)
         happy = sum(1 for r in cell if r["happy_pass"])
+        n_silent = sum(1 for r in cell if r["outcome"] == SILENT)
         out["hidden_failure"][m] = {
             "n": n, "happy_pass_rate": happy / n,
             "oracle_pass_rate": sum(1 for r in cell if r["oracle_pass"]) / n,
-            "hidden_share_any": (sum(1 for r in cell if r["outcome"] == SILENT) / happy)
-                                if happy else 0,
+            # counts, so the shares reconstruct exactly (round-3 Table VI fix):
+            # hidden_share_any = n_silent_any / n_happy_pass. NOTE this is NOT
+            # happy-pass% − oracle-pass% (oracle-pass includes overt cells that
+            # fail happy tests yet pass the oracle).
+            "n_happy_pass": happy, "n_silent_any": n_silent,
+            "n_silent_value": sum(1 for r in cell if is_v(r)),
+            "hidden_share_any": (n_silent / happy) if happy else 0,
             "hidden_share_value": (sum(1 for r in cell if is_v(r)) / happy) if happy else 0,
         }
     return out
@@ -498,11 +599,23 @@ def _write_report(o, problems):
       + ", ".join(f"{f} {_pct(o['per_family'][f]['rate_any'])}%" for f in fams) + "._\n")
     A("**Slip-through decomposition** — silent% = P(wrong) × P(slips past happy tests |"
       " wrong). The families are hard in different WAYS:\n")
-    A("| family | P(wrong) | P(slip \\| wrong) |")
-    A("|---|--:|--:|")
+    A("| family | P(wrong) | P(slip \\| wrong) | slip 95% cluster CI |")
+    A("|---|--:|--:|--:|")
     for f in fams:
         pf = o["per_family"][f]
-        A(f"| {f} | {_pct(pf['p_wrong'])}% | {_pct(pf['p_slip_given_wrong'])}% |")
+        lo, hi = pf["slip_ci_cluster"]
+        A(f"| {f} | {_pct(pf['p_wrong'])}% | {_pct(pf['p_slip_given_wrong'])}%"
+          f" | [{_pct(lo)}, {_pct(hi)}] |")
+    sc = o["slip_contrast"]
+    A(f"\n**Headline contrast (dst+calendar vs epoch+parsing):** slip"
+      f" {_pct(sc['slip_a'])}% vs {_pct(sc['slip_b'])}% — difference"
+      f" {_pct(sc['diff'])} pp, 95% task-cluster CI"
+      f" [{_pct(sc['diff_ci'][0])}, {_pct(sc['diff_ci'][1])}] pp;"
+      f" ratio {sc['ratio']:.1f}×, CI [{sc['ratio_ci'][0]:.1f}, {sc['ratio_ci'][1]:.1f}]×."
+      f" Pairwise dst-vs-epoch sensitivity: diff"
+      f" {_pct(o['slip_contrast_dst_vs_epoch']['diff'])} pp, CI"
+      f" [{_pct(o['slip_contrast_dst_vs_epoch']['diff_ci'][0])},"
+      f" {_pct(o['slip_contrast_dst_vs_epoch']['diff_ci'][1])}] pp.")
     A("\n_dst and calendar wrongness slips past happy-path tests at ~5× the rate of"
       " epoch/parsing wrongness — the blind spot belongs to the TESTS as much as the"
       " models. This, not a per-family wrongness ranking, is the paper's point._\n")
@@ -545,14 +658,18 @@ def _write_report(o, problems):
     A("Cells paired at (task, sample, language); buckets C/S/O/N ="
       " correct/silent/overt/nonresponse. The audit found the old repair/conversion"
       " labels wrong for 4/8 models; the flows below are the claim now.\n")
-    A("| model | S→C | S→S | S→O | S→N | **C→S (new silents)** | Δsilent | Δcorrect | Δovert | **Δnonresp** | mit LOAD@cap |")
-    A("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|")
+    A("| model | S→C | S→S | S→O | S→N | **C→S** | O→S | N→S | Δsilent | Δcorrect | Δovert | **Δnonresp** | L@cap |")
+    A("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|")
     for m in o["models"]:
         t = o["mitigation_transitions"][m]
-        e = t["silent_exits"]
+        e, en = t["silent_exits"], t["silent_entries"]
         A(f"| {m} | {e['C']} | {e['S']} | {e['O']} | {e['N']} "
-          f"| {t['new_silents_from_correct']} | {t['d_silent']:+d} | {t['d_correct']:+d} "
+          f"| {en['C']} | {en['O']} | {en['N']} "
+          f"| {t['d_silent']:+d} | {t['d_correct']:+d} "
           f"| {t['d_overt']:+d} | {t['d_nonresponse']:+d} | {t['mit_load_at_token_cap']} |")
+    A("\n_Reconstructible: Δsilent = (C→S + O→S + N→S) − (S→C + S→O + S→N); the script"
+      " asserts this per model. **L@cap** = mitigation LOAD_ERROR cells whose"
+      f" tokens_out ≥ {TOKEN_CAP} (the output cap) — censoring, not behavior._")
     A("\n_Readings the flows support: **llama** = conversion (silent→overt dominates);"
       " **haiku, opus** = partial repair (S→C dominates silent exits); **gpt-5.5** ="
       " zero silent→overt; its +Δovert is previously-CORRECT code degrading."
@@ -566,11 +683,16 @@ def _write_report(o, problems):
     A("Of the code that PASSES its own weak happy-path tests, the fraction that is"
       " actually wrong — the risk a developer's tests would hide. (Conditional sets"
       " differ per model; this is derived from §A, not independent evidence.)\n")
-    A("| model | happy-pass | oracle-pass | hidden (any) | hidden (value-only) |")
-    A("|---|--:|--:|--:|--:|")
+    A("**Definition: hidden(any) = silent-any ÷ happy-pass** (counts shown so every"
+      " share reconstructs). It is NOT happy-pass% − oracle-pass%: oracle-pass"
+      " includes cells that fail the happy tests yet pass the oracle (21 such"
+      " OVERT rows), so the subtraction under-counts for weaker models.\n")
+    A("| model | happy-pass n | silent-any n | happy-pass | oracle-pass | hidden (any) | hidden (value-only) |")
+    A("|---|--:|--:|--:|--:|--:|--:|")
     for m in o["models"]:
         t = o["hidden_failure"][m]
-        A(f"| {m} | {_pct(t['happy_pass_rate'])}% | {_pct(t['oracle_pass_rate'])}% "
+        A(f"| {m} | {t['n_happy_pass']} | {t['n_silent_any']} "
+          f"| {_pct(t['happy_pass_rate'])}% | {_pct(t['oracle_pass_rate'])}% "
           f"| {_pct(t['hidden_share_any'])}% | {_pct(t['hidden_share_value'])}% |")
 
     A("\n## G. Adjudication & provenance\n")

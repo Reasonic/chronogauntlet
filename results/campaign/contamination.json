@@ -1,0 +1,155 @@
+{
+ "classifier": {
+  "famous_zones": [
+   "America/New_York",
+   "Europe/London",
+   "UTC"
+  ],
+  "obscure_zones": [
+   "Asia/Kathmandu",
+   "Australia/Lord_Howe",
+   "Pacific/Apia"
+  ],
+  "famous_years": [
+   2024
+  ],
+  "obscure_years": "<=2010 or >=2038"
+ },
+ "instants": {
+  "FAMOUS": 266,
+  "OBSCURE": 276,
+  "OTHER": 194
+ },
+ "tasks_with_both": 91,
+ "n_rerun": 484,
+ "n_outcome_flips": 0,
+ "n_unmatched_notes": 0,
+ "per_model": {
+  "claude-haiku-4-5": {
+   "famous_den": 1512,
+   "famous_fail": 154,
+   "famous_rate": 0.10185185185185185,
+   "obscure_den": 1464,
+   "obscure_fail": 68,
+   "obscure_rate": 0.04644808743169399,
+   "diff": -0.055403764420157854,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.10012082070207812,
+    -0.01876006441223832
+   ]
+  },
+  "claude-opus-4-8": {
+   "famous_den": 1512,
+   "famous_fail": 64,
+   "famous_rate": 0.042328042328042326,
+   "obscure_den": 1464,
+   "obscure_fail": 47,
+   "obscure_rate": 0.03210382513661202,
+   "diff": -0.010224217191430303,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.02977395411605938,
+    0.008318876497315157
+   ]
+  },
+  "claude-sonnet-5": {
+   "famous_den": 1512,
+   "famous_fail": 42,
+   "famous_rate": 0.027777777777777776,
+   "obscure_den": 1464,
+   "obscure_fail": 12,
+   "obscure_rate": 0.00819672131147541,
+   "diff": -0.019581056466302364,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.04662074473395228,
+    0.0
+   ]
+  },
+  "deepseek-v4-flash": {
+   "famous_den": 1450,
+   "famous_fail": 109,
+   "famous_rate": 0.07517241379310345,
+   "obscure_den": 1427,
+   "obscure_fail": 56,
+   "obscure_rate": 0.039243167484232656,
+   "diff": -0.035929246308870795,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.062456820288145594,
+    -0.01194223014785143
+   ]
+  },
+  "deepseek-v4-pro": {
+   "famous_den": 1327,
+   "famous_fail": 82,
+   "famous_rate": 0.06179351921627732,
+   "obscure_den": 1352,
+   "obscure_fail": 37,
+   "obscure_rate": 0.027366863905325445,
+   "diff": -0.034426655310951876,
+   "n_tasks": 90,
+   "diff_ci": [
+    -0.06832697395972416,
+    -0.008150625230480404
+   ]
+  },
+  "gpt-5.5": {
+   "famous_den": 1503,
+   "famous_fail": 1,
+   "famous_rate": 0.0006653359946773121,
+   "obscure_den": 1458,
+   "obscure_fail": 0,
+   "obscure_rate": 0.0,
+   "diff": -0.0006653359946773121,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.002066115702479339,
+    0.0
+   ]
+  },
+  "llama-3.3-70b": {
+   "famous_den": 1507,
+   "famous_fail": 267,
+   "famous_rate": 0.1771731917717319,
+   "obscure_den": 1460,
+   "obscure_fail": 130,
+   "obscure_rate": 0.08904109589041095,
+   "diff": -0.08813209588132095,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.13399749039887449,
+    -0.043298771121351776
+   ]
+  },
+  "qwen3.5-9b": {
+   "famous_den": 1381,
+   "famous_fail": 175,
+   "famous_rate": 0.12671976828385229,
+   "obscure_den": 1374,
+   "obscure_fail": 103,
+   "obscure_rate": 0.07496360989810771,
+   "diff": -0.05175615838574457,
+   "n_tasks": 91,
+   "diff_ci": [
+    -0.07985009042510696,
+    -0.026852630722057902
+   ]
+  }
+ },
+ "pooled": {
+  "famous_den": 11704,
+  "famous_fail": 894,
+  "famous_rate": 0.07638414217361586,
+  "obscure_den": 11463,
+  "obscure_fail": 453,
+  "obscure_rate": 0.03951845066736456,
+  "diff": -0.0368656915062513,
+  "n_tasks": 91,
+  "diff_ci": [
+   -0.05767144741230423,
+   -0.019600816288061
+  ]
+ }
+}

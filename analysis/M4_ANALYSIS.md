@@ -61,14 +61,16 @@ _† backed by ≤2 units. Family totals (any-silent, bare): calendar 4.1%, dst 
 
 **Slip-through decomposition** — silent% = P(wrong) × P(slips past happy tests | wrong). The families are hard in different WAYS:
 
-| family | P(wrong) | P(slip \| wrong) |
-|---|--:|--:|
-| calendar | 9.6% | 42.4% |
-| dst | 39.7% | 43.1% |
-| epoch | 24.9% | 7.8% |
-| naive_aware | 17.5% | 21.5% |
-| parsing | 17.1% | 8.1% |
-| tz_conversion | 19.9% | 12.4% |
+| family | P(wrong) | P(slip \| wrong) | slip 95% cluster CI |
+|---|--:|--:|--:|
+| calendar | 9.6% | 42.4% | [22.4, 63.6] |
+| dst | 39.7% | 43.1% | [33.3, 52.3] |
+| epoch | 24.9% | 7.8% | [1.8, 16.4] |
+| naive_aware | 17.5% | 21.5% | [13.8, 29.7] |
+| parsing | 17.1% | 8.1% | [0.7, 19.7] |
+| tz_conversion | 19.9% | 12.4% | [4.0, 20.7] |
+
+**Headline contrast (dst+calendar vs epoch+parsing):** slip 43.1% vs 7.9% — difference 35.2 pp, 95% task-cluster CI [24.2, 45.3] pp; ratio 5.5×, CI [2.9, 15.0]×. Pairwise dst-vs-epoch sensitivity: diff 35.4 pp, CI [22.8, 46.2] pp.
 
 _dst and calendar wrongness slips past happy-path tests at ~5× the rate of epoch/parsing wrongness — the blind spot belongs to the TESTS as much as the models. This, not a per-family wrongness ranking, is the paper's point._
 
@@ -102,16 +104,18 @@ _LLM-written JS (Temporal) is wrong MORE often overall, but fails LOUDLY — dom
 
 Cells paired at (task, sample, language); buckets C/S/O/N = correct/silent/overt/nonresponse. The audit found the old repair/conversion labels wrong for 4/8 models; the flows below are the claim now.
 
-| model | S→C | S→S | S→O | S→N | **C→S (new silents)** | Δsilent | Δcorrect | Δovert | **Δnonresp** | mit LOAD@cap |
-|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| claude-haiku-4-5 | 61 | 38 | 5 | 0 | 27 | -27 | +33 | -5 | -1 | 0 |
-| claude-opus-4-8 | 26 | 30 | 0 | 0 | 11 | -15 | +16 | -1 | +0 | 0 |
-| claude-sonnet-5 | 13 | 15 | 4 | 0 | 17 | +0 | +3 | -4 | +1 | 1 |
-| gpt-5.5 | 4 | 4 | 0 | 0 | 0 | -4 | -11 | +9 | +6 | 10 |
-| deepseek-v4-flash | 20 | 27 | 7 | 13 | 27 | -5 | -39 | +11 | +33 | 17 |
-| deepseek-v4-pro | 6 | 17 | 2 | 13 | 21 | +7 | -41 | +0 | +34 | 62 |
-| llama-3.3-70b | 28 | 33 | 116 | 2 | 21 | -106 | -17 | +117 | +6 | 0 |
-| qwen3.5-9b | 39 | 23 | 28 | 12 | 25 | -30 | +15 | +15 | +0 | 44 |
+| model | S→C | S→S | S→O | S→N | **C→S** | O→S | N→S | Δsilent | Δcorrect | Δovert | **Δnonresp** | L@cap |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| claude-haiku-4-5 | 61 | 38 | 5 | 0 | 27 | 12 | 0 | -27 | +33 | -5 | -1 | 0 |
+| claude-opus-4-8 | 26 | 30 | 0 | 0 | 11 | 0 | 0 | -15 | +16 | -1 | +0 | 0 |
+| claude-sonnet-5 | 13 | 15 | 4 | 0 | 17 | 0 | 0 | +0 | +3 | -4 | +1 | 1 |
+| gpt-5.5 | 4 | 4 | 0 | 0 | 0 | 0 | 0 | -4 | -11 | +9 | +6 | 10 |
+| deepseek-v4-flash | 20 | 27 | 7 | 13 | 27 | 3 | 5 | -5 | -39 | +11 | +33 | 17 |
+| deepseek-v4-pro | 6 | 17 | 2 | 13 | 21 | 0 | 7 | +7 | -41 | +0 | +34 | 62 |
+| llama-3.3-70b | 28 | 33 | 116 | 2 | 21 | 19 | 0 | -106 | -17 | +117 | +6 | 0 |
+| qwen3.5-9b | 39 | 23 | 28 | 12 | 25 | 20 | 4 | -30 | +15 | +15 | +0 | 44 |
+
+_Reconstructible: Δsilent = (C→S + O→S + N→S) − (S→C + S→O + S→N); the script asserts this per model. **L@cap** = mitigation LOAD_ERROR cells whose tokens_out ≥ 8192 (the output cap) — censoring, not behavior._
 
 _Readings the flows support: **llama** = conversion (silent→overt dominates); **haiku, opus** = partial repair (S→C dominates silent exits); **gpt-5.5** = zero silent→overt; its +Δovert is previously-CORRECT code degrading. **deepseek pro/flash**: the apparent effects are confounded by token-cap CENSORING — their mitigation LOAD_ERRORs sit at the 8192 cap (last column); longer prompts → longer reasoning → truncation, not behavior change. And in 7/8 models mitigation CREATES new silents from previously-correct code (C→S column) — the mitigation prompt is not risk-free._
 
@@ -120,16 +124,18 @@ _Readings the flows support: **llama** = conversion (silent→overt dominates); 
 
 Of the code that PASSES its own weak happy-path tests, the fraction that is actually wrong — the risk a developer's tests would hide. (Conditional sets differ per model; this is derived from §A, not independent evidence.)
 
-| model | happy-pass | oracle-pass | hidden (any) | hidden (value-only) |
-|---|--:|--:|--:|--:|
-| claude-haiku-4-5 | 82.6% | 75.7% | 8.7% | 8.3% |
-| claude-opus-4-8 | 98.1% | 94.2% | 4.0% | 3.4% |
-| claude-sonnet-5 | 97.4% | 95.2% | 2.3% | 1.9% |
-| gpt-5.5 | 99.7% | 99.1% | 0.6% | 0.1% |
-| deepseek-v4-flash | 87.8% | 83.2% | 5.3% | 4.5% |
-| deepseek-v4-pro | 84.5% | 81.9% | 3.1% | 2.6% |
-| llama-3.3-70b | 58.0% | 46.0% | 21.4% | 16.3% |
-| qwen3.5-9b | 49.3% | 42.4% | 14.4% | 11.3% |
+**Definition: hidden(any) = silent-any ÷ happy-pass** (counts shown so every share reconstructs). It is NOT happy-pass% − oracle-pass%: oracle-pass includes cells that fail the happy tests yet pass the oracle (21 such OVERT rows), so the subtraction under-counts for weaker models.
+
+| model | happy-pass n | silent-any n | happy-pass | oracle-pass | hidden (any) | hidden (value-only) |
+|---|--:|--:|--:|--:|--:|--:|
+| claude-haiku-4-5 | 1189 | 104 | 82.6% | 75.7% | 8.7% | 8.3% |
+| claude-opus-4-8 | 1413 | 56 | 98.1% | 94.2% | 4.0% | 3.4% |
+| claude-sonnet-5 | 1403 | 32 | 97.4% | 95.2% | 2.3% | 1.9% |
+| gpt-5.5 | 1435 | 8 | 99.7% | 99.1% | 0.6% | 0.1% |
+| deepseek-v4-flash | 1265 | 67 | 87.8% | 83.2% | 5.3% | 4.5% |
+| deepseek-v4-pro | 1217 | 38 | 84.5% | 81.9% | 3.1% | 2.6% |
+| llama-3.3-70b | 835 | 179 | 58.0% | 46.0% | 21.4% | 16.3% |
+| qwen3.5-9b | 710 | 102 | 49.3% | 42.4% | 14.4% | 11.3% |
 
 ## G. Adjudication & provenance
 
