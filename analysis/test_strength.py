@@ -227,6 +227,34 @@ def main():
         "dst_calendar": pooled(("dst", "calendar")),
         "epoch_parsing": pooled(("epoch", "parsing")),
     }
+    # Round-4 fix: CI + one-sided p on the mutant-contrast DIFFERENCE itself
+    # (the group CIs alone say nothing about the difference's separation).
+    def clusters_of(fams_in):
+        cs = collections.defaultdict(lambda: [0, 0])
+        for r in per_task:
+            if r["family"] in fams_in and r["oracle_detected"]:
+                cs[r["task"]][0] += 1
+                cs[r["task"]][1] += (not r["happy_killed"])
+        return list(cs.values())
+    ca, cb = clusters_of(("dst", "calendar")), clusters_of(("epoch", "parsing"))
+    pa = sum(c[1] for c in ca) / sum(c[0] for c in ca)
+    pb = sum(c[1] for c in cb) / sum(c[0] for c in cb)
+    rng = random.Random(BOOT_SEED)
+    diffs = []
+    while len(diffs) < BOOT_B:
+        da = na = db = nb = 0
+        for _ in range(len(ca)):
+            c = ca[rng.randrange(len(ca))]; da += c[0]; na += c[1]
+        for _ in range(len(cb)):
+            c = cb[rng.randrange(len(cb))]; db += c[0]; nb += c[1]
+        if da and db:
+            diffs.append(na / da - nb / db)
+    diffs.sort()
+    out["pooled_contrast"]["diff"] = {
+        "point": pa - pb,
+        "ci95": [diffs[int(0.025 * len(diffs))], diffs[int(0.975 * len(diffs)) - 1]],
+        "p_one_sided_le_0": sum(1 for d in diffs if d <= 0) / len(diffs),
+    }
 
     # ---- secondary: pin mutants vs happy suites ------------------------------ #
     for t in tasks:
@@ -277,36 +305,43 @@ def main():
         L.append(f"\n_Mutant cap ({MAX_MUTANTS_PER_TASK}) hit for: "
                  f"{', '.join(out['cap_hit_tasks'])}._")
     pc = out["pooled_contrast"]
-    a, b = pc["dst_calendar"], pc["epoch_parsing"]
+    a, b, d = pc["dst_calendar"], pc["epoch_parsing"], pc["diff"]
     L += ["",
-          "## Reading",
+          "## Reading (calibrated per the round-4 validation)",
           "",
           f"**Pooled mutant slip:** dst+calendar {100*a['slip']:.0f}%"
           f" [{100*a['slip_ci'][0]:.0f},{100*a['slip_ci'][1]:.0f}]"
           f" (n={a['n_detected']}) vs epoch+parsing {100*b['slip']:.0f}%"
           f" [{100*b['slip_ci'][0]:.0f},{100*b['slip_ci'][1]:.0f}]"
-          f" (n={b['n_detected']}). Model-error slip on the same groups: 43.1% vs 7.9%.",
+          f" (n={b['n_detected']}); contrast difference {100*d['point']:+.1f} pp,"
+          f" 95% cluster CI [{100*d['ci95'][0]:+.1f}, {100*d['ci95'][1]:+.1f}] pp,"
+          f" one-sided p(diff≤0) = {d['p_one_sided_le_0']:.3f}."
+          f" Model-error slip on the same groups: 43.1% vs 7.9%. **Scope: Python arm.**",
           "",
-          "1. **The asymmetry is not manufactured by uneven happy-suite authoring.**"
-          " Family-neutral mechanical mutants show the same DIRECTION — because"
+          "1. **What the control shows:** family-neutral mechanical mutants slip in"
+          " the SAME DIRECTION as model errors — directionally consistent"
+          " (one-sided p ≈ 0.05) but NOT separated at two-sided 95% (the CI on the"
+          " difference includes 0). A structural mechanism predicts exactly this:"
           " dst/calendar divergences are intrinsically local to special instants"
-          " (a fold flip changes behavior only at ambiguous times, so no happy"
-          " input can see it), while epoch/parsing errors shift outputs globally."
-          " That structural component IS the paper's claimed mechanism ('the blind"
-          " spot belongs to the tests'), measured here on authored-neutral errors.",
-          "2. **Model errors are more extreme than the structural baseline on both"
-          " ends**: model epoch/parsing errors slip LESS than mechanical ones"
-          " (7.9% vs ~16% — model errors there are gross, happy-visible mistakes),"
-          " and model dst/calendar errors slip at least as much (43.1% vs ~36%).",
-          "3. **Happy-kill rates differ by ≤22 pp across families** (55–77%),"
-          " with epoch/parsing suites at the strong end; this residual"
-          " test-stringency difference is disclosed as a partial contributor —"
-          " the mutant-slip baseline above is the quantified bound on it.",
-          "4. **Pin-mutant control**: pinned-clause violations are near-invisible"
+          " (a fold flip changes behavior only at ambiguous times, which no happy"
+          " input visits), while epoch/parsing errors shift outputs globally.",
+          "2. **What the control CANNOT rule out:** differential happy-suite"
+          " permeability. Happy-kill rates on the same mutants are 55–64%"
+          " (dst/calendar) vs 76–77% (epoch/parsing); both 'intrinsic locality'"
+          " and 'weaker authored suites' produce this signature, so the control"
+          " bounds but does not eliminate the authored-test explanation.",
+          "3. **Point-estimate comparison (no separation claimed):** model"
+          " epoch/parsing errors slip less than mechanical ones (7.9% vs ~16%)"
+          " and model dst/calendar errors slip at least as much (43.1% vs ~36%);"
+          " the mutant CIs contain the model values, so this is descriptive only.",
+          "4. **Two facts that cut AGAINST an authored asymmetry:** per-family"
+          " happy-input counts do not favor it, and the only three deliberately"
+          " weaker happy comparators in the corpus are in epoch/parsing tasks —"
+          " a bias AGAINST the headline contrast, not for it.",
+          "5. **Pin-mutant control**: pinned-clause violations are near-invisible"
           " to happy suites in every family EXCEPT epoch (14/31 happy-caught,"
           " because epoch-base errors shift every output) — consistent with"
-          " structure, not authoring; the oracle catches 216/216 (matches the"
-          " coverage gate).",
+          " structure; the oracle catches 216/216 (matches the coverage gate).",
           ""]
     open("analysis/TEST_STRENGTH.md", "w").write("\n".join(L) + "\n")
     print("wrote results/campaign/test_strength.json + analysis/TEST_STRENGTH.md")

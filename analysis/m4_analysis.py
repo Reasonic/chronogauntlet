@@ -349,6 +349,14 @@ def analyze(R):
     out["slip_contrast_dst_vs_epoch"] = _slip_contrast_ci(
         [r for r in bare if r["family"] == "dst"],
         [r for r in bare if r["family"] == "epoch"])
+    # round-4 fix: WITHIN-LANGUAGE sensitivity — the pooled contrast mixes two
+    # regimes (epoch wrong cells are ~13x JS-skewed via Temporal crashes).
+    out["slip_contrast_by_language"] = {}
+    for lang in ("python", "js"):
+        lrows = [r for r in bare if r["language"] == lang]
+        out["slip_contrast_by_language"][lang] = _slip_contrast_ci(
+            [r for r in lrows if r["family"] in ("dst", "calendar")],
+            [r for r in lrows if r["family"] in ("epoch", "parsing")])
     # silent concentration: top-10 (task,language) units' share of all bare silents
     unit_counts = collections.Counter(
         (r["task"], r["language"]) for r in R
@@ -616,6 +624,15 @@ def _write_report(o, problems):
       f" {_pct(o['slip_contrast_dst_vs_epoch']['diff'])} pp, CI"
       f" [{_pct(o['slip_contrast_dst_vs_epoch']['diff_ci'][0])},"
       f" {_pct(o['slip_contrast_dst_vs_epoch']['diff_ci'][1])}] pp.")
+    A("\n**Within-language sensitivity** (the pooled contrast mixes regimes —"
+      " epoch wrong cells are ~13× JS-skewed via loud Temporal crashes):")
+    for lang in ("python", "js"):
+        lc = o["slip_contrast_by_language"][lang]
+        A(f"- {lang}: {_pct(lc['slip_a'])}% vs {_pct(lc['slip_b'])}% — diff"
+          f" {_pct(lc['diff'])} pp, 95% cluster CI [{_pct(lc['diff_ci'][0])},"
+          f" {_pct(lc['diff_ci'][1])}] pp")
+    A("\n_The direction replicates within BOTH languages; the Python-only"
+      " contrast is larger than the pooled headline._")
     A("\n_dst and calendar wrongness slips past happy-path tests at ~5× the rate of"
       " epoch/parsing wrongness — the blind spot belongs to the TESTS as much as the"
       " models. This, not a per-family wrongness ranking, is the paper's point._\n")

@@ -6,7 +6,8 @@ them from recall without general datetime competence. Memorization DEFLATES
 silent-wrong rates (conservative for the paper's floor claim) but, if it
 differs across models, THREATENS the strata comparisons.
 
-PRE-REGISTERED INSTANT CLASSIFIER (fixed before any split was computed):
+PRE-SPECIFIED INSTANT CLASSIFIER (fixed before any split was computed; this is
+a post-generation analysis, so "pre-specified", not "pre-registered"):
   An oracle input tuple is classified by the zones and years appearing in it
   (datetime/date objects, IANA-zone strings, ISO-date strings; walked
   recursively):
@@ -239,8 +240,9 @@ def main():
     # ---- report -------------------------------------------------------------- #
     L = ["# Contamination analysis — famous vs obscure adversarial instants",
          "",
-         "_Round-3 must-fix #4. Pre-registered classifier (see"
-         " `analysis/contamination.py` docstring). Instant-level VALUE-failure"
+         "_Round-3 must-fix #4. Pre-specified classifier — fixed before any split"
+         " was computed (see `analysis/contamination.py` docstring). Instant-level"
+         " VALUE-failure"
          " rate per (model, class), restricted to tasks containing BOTH classes"
          " (within-task control). Python arm, bare; cells needing it were"
          " re-executed in the isolated sandbox (zero spend), outcomes asserted"

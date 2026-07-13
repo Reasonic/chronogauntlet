@@ -16,7 +16,7 @@ match how the other four models' numbers were generated (disclosed).
     ./.venv/bin/python -m analysis.capability_correlate
 """
 import json
-from itertools import combinations
+from itertools import permutations
 
 # model -> SWE-bench Verified (%), vendor-self-reported (official cards; n=6 subset).
 SWE_VERIFIED = {
@@ -75,6 +75,21 @@ def main():
     print(f"\nSpearman(capability%, silent%)          = {rho_raw:+.3f}  (negative = better coder, fewer silent)")
     print(f"Spearman(capability-rank, fewer-silent) = {rho_aligned:+.3f}")
 
+    # Exact permutation test over all n! orderings (round-4 fix: this p-value was
+    # previously stated in the paper but not computed by any released script).
+    n = len(models)
+    rhos = [spearman(swe, [sw[i] for i in perm]) for perm in permutations(range(n))]
+    p_one = sum(1 for r in rhos if r <= rho_raw) / len(rhos)          # directional
+    p_two = sum(1 for r in rhos if abs(r) >= abs(rho_raw)) / len(rhos)
+    print(f"exact permutation test ({len(rhos)} orderings): one-sided p = {p_one:.4f}, "
+          f"two-sided p = {p_two:.4f} (the paper reports the two-sided value)")
+
+    # remove-opus sensitivity (the non-monotonicity is carried by opus alone)
+    sub = [m for m in models if m != "claude-opus-4-8"]
+    rho_no_opus = spearman([SWE_VERIFIED[m] for m in sub],
+                           [100 * o["per_model"][m]["bare"]["rate_value"] for m in sub])
+    print(f"remove-opus sensitivity: Spearman = {rho_no_opus:+.3f} (n={len(sub)})")
+
     # the deviation that carries the 'distinct construct' point
     dev = max(models, key=lambda m: cap_rank[m] - sil_rank[m])  # good coder, worse-than-expected silence... we want cap good (low rank) but sil bad (high rank)
     dev = min(models, key=lambda m: sil_rank[m] - cap_rank[m])  # most: silence better than capability predicts
@@ -90,6 +105,9 @@ def main():
         "swe_verified": SWE_VERIFIED,
         "silent_value_pct": {m: round(100 * o["per_model"][m]["bare"]["rate_value"], 3) for m in models},
         "spearman_cap_vs_silent": round(rho_raw, 3),
+        "perm_p_one_sided": round(p_one, 4),
+        "perm_p_two_sided": round(p_two, 4),
+        "spearman_without_opus": round(rho_no_opus, 3),
         "largest_deviation_model": worst_gap,
         "caveat": "vendor-self-reported SWE-bench Verified, non-identical harnesses; n=6, wide CI",
     }

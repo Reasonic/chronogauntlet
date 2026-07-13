@@ -49,6 +49,10 @@ def main():
       f"| ratio {sc['ratio']:.1f}x CI[{sc['ratio_ci'][0]:.1f},{sc['ratio_ci'][1]:.1f}]")
     d = o["slip_contrast_dst_vs_epoch"]
     A(f"  pairwise dst-vs-epoch: diff {100*d['diff']:+.1f}pp CI[{100*d['diff_ci'][0]:+.1f},{100*d['diff_ci'][1]:+.1f}]")
+    for lang in ("python", "js"):
+        lc = o["slip_contrast_by_language"][lang]
+        A(f"  within-{lang}: {100*lc['slip_a']:.1f}% vs {100*lc['slip_b']:.1f}% | diff"
+          f" {100*lc['diff']:+.1f}pp CI[{100*lc['diff_ci'][0]:+.1f},{100*lc['diff_ci'][1]:+.1f}]")
     c = o["concentration"]
     A(f"- concentration: top-10 units = {100*c['top10_share']:.0f}% of {c['total_bare_silents']} bare silents")
     A("  top units: " + ", ".join(f"{u['task']}·{u['language']}({u['silents']})" for u in c["top10_units"]))
@@ -87,17 +91,24 @@ def main():
     A("- campaign spend: $132.70; oracle bugs 0")
     A("- dispute rate (HEADLINE, human-adjudicated, M5): 0/42, Clopper-Pearson 95% CI [0, 8.4%]")
     A("  (superseded the earlier M4 LLM-agent-adjudicated 0/28; see analysis/M5_ADJUDICATION_RESULT.md)")
-    A("- capability correlate (n=6, SWE-bench Verified subset): Spearman rho=-0.83, exact-perm p=0.058;")
-    A("  remove-opus rho=-1.0 (the non-monotonicity is carried by opus alone)")
+    cc = json.load(open("results/campaign/capability_correlate.json"))
+    A(f"- capability correlate (n={cc['n']}, SWE-bench Verified subset): Spearman"
+      f" rho={cc['spearman_cap_vs_silent']}, exact-perm p={cc['perm_p_two_sided']}"
+      f" two-sided (one-sided {cc['perm_p_one_sided']}); remove-opus"
+      f" rho={cc['spearman_without_opus']} (non-monotonicity carried by opus alone)"
+      f" [computed by analysis/capability_correlate.py]")
     A("- language silent-share-of-wrong diff (py-js): 59.5% vs 8.8%, 95% cluster CI [+42.5,+58.5] pp")
     A("- coverage: 216/216 mutation-verified pins; cross-validation 959/959 rows")
     # round-3 controls (regenerate via analysis/test_strength.py, analysis/contamination.py)
     try:
         ts = json.load(open("results/campaign/test_strength.json"))
         a, b = ts["pooled_contrast"]["dst_calendar"], ts["pooled_contrast"]["epoch_parsing"]
-        A(f"- test-strength control (mechanical mutants, n={ts['n_mutants']}): mutant-slip "
+        A(f"- test-strength control (mechanical mutants, n={ts['n_mutants']}, PYTHON arm): mutant-slip "
           f"dst+cal {100*a['slip']:.0f}% CI[{100*a['slip_ci'][0]:.0f},{100*a['slip_ci'][1]:.0f}] "
           f"vs epoch+parsing {100*b['slip']:.0f}% CI[{100*b['slip_ci'][0]:.0f},{100*b['slip_ci'][1]:.0f}]")
+        dd = ts["pooled_contrast"]["diff"]
+        A(f"  mutant-contrast diff {100*dd['point']:+.1f}pp CI[{100*dd['ci95'][0]:+.1f},{100*dd['ci95'][1]:+.1f}]"
+          f" one-sided p(<=0)={dd['p_one_sided_le_0']:.3f} — directionally consistent, NOT separated at 95%")
         cont = json.load(open("results/campaign/contamination.json"))
         p = cont["pooled"]
         A(f"- contamination split (famous vs obscure instants, {cont['tasks_with_both']} both-class tasks, "

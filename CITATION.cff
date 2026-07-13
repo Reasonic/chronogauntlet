@@ -24,4 +24,8 @@ keywords:
   - differential-testing
 license: MIT
 repository-code: "https://github.com/Singularis-Research/chronogauntlet"
-# TODO on release: add `preferred-citation` (the paper) with DOI/arXiv id.
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21347437"
+    description: "Zenodo archival record"
+# TODO on release: add `preferred-citation` (the paper) once the arXiv id exists.

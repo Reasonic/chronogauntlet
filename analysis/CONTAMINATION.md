@@ -1,6 +1,6 @@
 # Contamination analysis — famous vs obscure adversarial instants
 
-_Round-3 must-fix #4. Pre-registered classifier (see `analysis/contamination.py` docstring). Instant-level VALUE-failure rate per (model, class), restricted to tasks containing BOTH classes (within-task control). Python arm, bare; cells needing it were re-executed in the isolated sandbox (zero spend), outcomes asserted unchanged vs the frozen verdicts._
+_Round-3 must-fix #4. Pre-specified classifier — fixed before any split was computed (see `analysis/contamination.py` docstring). Instant-level VALUE-failure rate per (model, class), restricted to tasks containing BOTH classes (within-task control). Python arm, bare; cells needing it were re-executed in the isolated sandbox (zero spend), outcomes asserted unchanged vs the frozen verdicts._
 
 Instant classes: {'FAMOUS': 266, 'OBSCURE': 276, 'OTHER': 194}; tasks with both: 91; sandbox re-runs 484 (outcome flips 0); unmatched notes 0.
 

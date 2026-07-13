@@ -21,6 +21,9 @@
     "claude-haiku-4-5": 6.875
   },
   "spearman_cap_vs_silent": -0.829,
+  "perm_p_one_sided": 0.0292,
+  "perm_p_two_sided": 0.0583,
+  "spearman_without_opus": -1.0,
   "largest_deviation_model": "claude-opus-4-8",
   "caveat": "vendor-self-reported SWE-bench Verified, non-identical harnesses; n=6, wide CI"
 }

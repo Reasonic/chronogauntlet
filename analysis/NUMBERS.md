@@ -33,6 +33,8 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
 - tz_conversion: P(wrong) 19.9% | P(slip|wrong) 12.4% CI[4.0,20.7] | any-silent 2.5% | n 2304
 - SLIP CONTRAST dst+cal vs epoch+parsing: 43.1% vs 7.9% | diff +35.2pp CI[+24.2,+45.3] | ratio 5.5x CI[2.9,15.0]
   pairwise dst-vs-epoch: diff +35.4pp CI[+22.8,+46.2]
+  within-python: 71.5% vs 13.2% | diff +58.3pp CI[+38.6,+72.9]
+  within-js: 20.2% vs 7.3% | diff +12.9pp CI[+0.2,+25.1]
 - concentration: top-10 units = 35% of 586 bare silents
   top units: C1_elapsed_across_dst·python(27), DSW5_sla_deadline_wall_hours·python(25), DSW5_sla_deadline_wall_hours·js(25), NAV10_build_local_rolling·python(24), D2_weekly_meeting_series·python(21), C2_resolve_gap_forward·python(19), DSW1_meter_billing_across_dst·python(18), DSW7_wall_duration_to_real_seconds·python(18), B2_meeting_in_zones·python(16), DSW4_overtime_across_25h_day·python(15)
 
@@ -70,9 +72,9 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
 - campaign spend: $132.70; oracle bugs 0
 - dispute rate (HEADLINE, human-adjudicated, M5): 0/42, Clopper-Pearson 95% CI [0, 8.4%]
   (superseded the earlier M4 LLM-agent-adjudicated 0/28; see analysis/M5_ADJUDICATION_RESULT.md)
-- capability correlate (n=6, SWE-bench Verified subset): Spearman rho=-0.83, exact-perm p=0.058;
-  remove-opus rho=-1.0 (the non-monotonicity is carried by opus alone)
+- capability correlate (n=6, SWE-bench Verified subset): Spearman rho=-0.829, exact-perm p=0.0583 two-sided (one-sided 0.0292); remove-opus rho=-1.0 (non-monotonicity carried by opus alone) [computed by analysis/capability_correlate.py]
 - language silent-share-of-wrong diff (py-js): 59.5% vs 8.8%, 95% cluster CI [+42.5,+58.5] pp
 - coverage: 216/216 mutation-verified pins; cross-validation 959/959 rows
-- test-strength control (mechanical mutants, n=661): mutant-slip dst+cal 36% CI[22,49] vs epoch+parsing 16% CI[0,33]
+- test-strength control (mechanical mutants, n=661, PYTHON arm): mutant-slip dst+cal 36% CI[22,49] vs epoch+parsing 16% CI[0,33]
+  mutant-contrast diff +20.0pp CI[-3.2,+42.2] one-sided p(<=0)=0.042 — directionally consistent, NOT separated at 95%
 - contamination split (famous vs obscure instants, 91 both-class tasks, python bare): 7.6% vs 4.0% | diff -3.7pp CI[-5.8,-2.0] (contamination predicts POSITIVE; observed negative) | sandbox re-runs 484, outcome flips 0

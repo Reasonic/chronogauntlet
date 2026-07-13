@@ -22,12 +22,13 @@ _Round-3 must-fix #2. Mechanical AST mutants of every reference (operator swaps,
 | parsing | 17 | 0 | 17 |
 | tz_conversion | 29 | 3 | 29 |
 
-## Reading
+## Reading (calibrated per the round-4 validation)
 
-**Pooled mutant slip:** dst+calendar 36% [22,49] (n=189) vs epoch+parsing 16% [0,33] (n=69). Model-error slip on the same groups: 43.1% vs 7.9%.
+**Pooled mutant slip:** dst+calendar 36% [22,49] (n=189) vs epoch+parsing 16% [0,33] (n=69); contrast difference +20.0 pp, 95% cluster CI [-3.2, +42.2] pp, one-sided p(diff≤0) = 0.042. Model-error slip on the same groups: 43.1% vs 7.9%. **Scope: Python arm.**
 
-1. **The asymmetry is not manufactured by uneven happy-suite authoring.** Family-neutral mechanical mutants show the same DIRECTION — because dst/calendar divergences are intrinsically local to special instants (a fold flip changes behavior only at ambiguous times, so no happy input can see it), while epoch/parsing errors shift outputs globally. That structural component IS the paper's claimed mechanism ('the blind spot belongs to the tests'), measured here on authored-neutral errors.
-2. **Model errors are more extreme than the structural baseline on both ends**: model epoch/parsing errors slip LESS than mechanical ones (7.9% vs ~16% — model errors there are gross, happy-visible mistakes), and model dst/calendar errors slip at least as much (43.1% vs ~36%).
-3. **Happy-kill rates differ by ≤22 pp across families** (55–77%), with epoch/parsing suites at the strong end; this residual test-stringency difference is disclosed as a partial contributor — the mutant-slip baseline above is the quantified bound on it.
-4. **Pin-mutant control**: pinned-clause violations are near-invisible to happy suites in every family EXCEPT epoch (14/31 happy-caught, because epoch-base errors shift every output) — consistent with structure, not authoring; the oracle catches 216/216 (matches the coverage gate).
+1. **What the control shows:** family-neutral mechanical mutants slip in the SAME DIRECTION as model errors — directionally consistent (one-sided p ≈ 0.05) but NOT separated at two-sided 95% (the CI on the difference includes 0). A structural mechanism predicts exactly this: dst/calendar divergences are intrinsically local to special instants (a fold flip changes behavior only at ambiguous times, which no happy input visits), while epoch/parsing errors shift outputs globally.
+2. **What the control CANNOT rule out:** differential happy-suite permeability. Happy-kill rates on the same mutants are 55–64% (dst/calendar) vs 76–77% (epoch/parsing); both 'intrinsic locality' and 'weaker authored suites' produce this signature, so the control bounds but does not eliminate the authored-test explanation.
+3. **Point-estimate comparison (no separation claimed):** model epoch/parsing errors slip less than mechanical ones (7.9% vs ~16%) and model dst/calendar errors slip at least as much (43.1% vs ~36%); the mutant CIs contain the model values, so this is descriptive only.
+4. **Two facts that cut AGAINST an authored asymmetry:** per-family happy-input counts do not favor it, and the only three deliberately weaker happy comparators in the corpus are in epoch/parsing tasks — a bias AGAINST the headline contrast, not for it.
+5. **Pin-mutant control**: pinned-clause violations are near-invisible to happy suites in every family EXCEPT epoch (14/31 happy-caught, because epoch-base errors shift every output) — consistent with structure; the oracle catches 216/216 (matches the coverage gate).
 

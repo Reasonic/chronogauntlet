@@ -1,4 +1,4 @@
-"""Family C — DST transitions (~15% of real bugs, but deliberately emphasized).
+"""Family C — DST transitions (7.9% of real bugs, but deliberately emphasized).
 
 MSR 2025 finds DST-specific bugs are only 7.9% of the corpus, but argues they
 are UNDER-reported precisely because they "manifest infrequently in production"

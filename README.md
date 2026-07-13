@@ -8,8 +8,8 @@ per-model, per-pitfall **silent-wrong rate**: *passes the weak happy-path tests,
 semantic oracle*. No human labels, no LLM judge in the scoring path.
 
 > **📄 Paper:** distributed separately — this repo is the reproducibility artifact.
-> **TODO(release): add paper links** — arXiv: `https://arxiv.org/abs/XXXX.XXXXX` ·
-> Zenodo DOI: `https://doi.org/10.5281/zenodo.XXXXXXX`.
+> **Archival record:** [doi:10.5281/zenodo.21347437](https://doi.org/10.5281/zenodo.21347437) ·
+> **TODO(release): arXiv:** `https://arxiv.org/abs/XXXX.XXXXX`.
 > **Datasheet:** [`DATASHEET.md`](DATASHEET.md).
 
 ## Results at a glance
@@ -29,11 +29,13 @@ tests **and** returns a wrong value at an adversarial instant.
 | claude-haiku-4-5 | frontier | 6.9% [4.4–9.7] |
 | llama-3.3-70b | open | 9.4% [6.7–12.6] |
 
-Headline findings: rates span a ~68× range that separates into four capability strata
+Headline findings: rates span 0.1%→9.4% (best-vs-worst difference significant under
+task-cluster resampling, 95% CI [+6.5, +12.2] pp) and separate into four capability strata
 **crossing the proprietary/open line**; **DST and calendar** errors slip past happy-path tests
-~5.5× more often than epoch/parsing errors (the blind spot is the tests' as much as the
-models'); silent-wrong is **correlated with but not reducible to** general coding ability; the
-oracle independently catches **31 real, previously-fixed human bugs**; dispute rate **0/42**
+at 43% vs 8% for epoch/parsing errors (+35 pp, 95% cluster CI [+24, +45] — the blind spot is
+the tests' as much as the models'); silent-wrong is **correlated with but not reducible to**
+general coding ability; post-hoc replication reproduces **31 of 36 real, previously-fixed
+human bugs** as silent under the oracle; dispute rate **0/42**
 (human-adjudicated, 95% CI [0, 8.4%]). See the paper (linked above) and
 [`analysis/M4_ANALYSIS.md`](analysis/M4_ANALYSIS.md) for the full analysis.
 

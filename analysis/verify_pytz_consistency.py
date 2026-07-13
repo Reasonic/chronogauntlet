@@ -5,7 +5,8 @@ pytz ships its own tz database, independent of the `tzdata` PyPI pin the oracle'
 whatever tz rules pytz bundles — a validity threat if they differ from 2025b at
 any instant the oracle evaluates (M5 review R2-F4). This check forecloses it:
 it compares pytz against zoneinfo(tzdata 2025b) at every oracle-catalog zone,
-6-hourly over 1985-2030 (>500k pairs). Exit 0 iff they agree everywhere.
+6-hourly over 1985-2030 (6 zones x 65,744 instants = 394,464 pairs; the exact
+count is printed). Exit 0 iff they agree everywhere.
 
     ./.venv/bin/python -m analysis.verify_pytz_consistency
 """

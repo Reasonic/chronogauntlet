@@ -72,6 +72,12 @@ _† backed by ≤2 units. Family totals (any-silent, bare): calendar 4.1%, dst 
 
 **Headline contrast (dst+calendar vs epoch+parsing):** slip 43.1% vs 7.9% — difference 35.2 pp, 95% task-cluster CI [24.2, 45.3] pp; ratio 5.5×, CI [2.9, 15.0]×. Pairwise dst-vs-epoch sensitivity: diff 35.4 pp, CI [22.8, 46.2] pp.
 
+**Within-language sensitivity** (the pooled contrast mixes regimes — epoch wrong cells are ~13× JS-skewed via loud Temporal crashes):
+- python: 71.5% vs 13.2% — diff 58.3 pp, 95% cluster CI [38.6, 72.9] pp
+- js: 20.2% vs 7.3% — diff 12.9 pp, 95% cluster CI [0.2, 25.1] pp
+
+_The direction replicates within BOTH languages; the Python-only contrast is larger than the pooled headline._
+
 _dst and calendar wrongness slips past happy-path tests at ~5× the rate of epoch/parsing wrongness — the blind spot belongs to the TESTS as much as the models. This, not a per-family wrongness ranking, is the paper's point._
 
 **Concentration disclosure:** the top-10 (task,language) units carry 35% of all 586 bare silents (C1_elapsed_across_dst·python, DSW5_sla_deadline_wall_hours·python, DSW5_sla_deadline_wall_hours·js, NAV10_build_local_rolling·python, D2_weekly_meeting_series·python, …). Silent failures are systematic and task-specific, not diffuse noise.
