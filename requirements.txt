@@ -1,0 +1,20 @@
+# ChronoGauntlet — pinned for reproducibility.
+# The tzdata pin is load-bearing: it fixes the IANA release the oracle resolves
+# DST/offset rules from (see oracle/tzconfig.py). Recorded IANA version: 2025b.
+tzdata==2025.2
+# Common datetime libs must be importable in the EXECUTION sandbox, or library-
+# based model solutions (very common: pytz / dateutil) mis-classify as LOAD_ERROR
+# and undercount silent-wrong. These are candidate-runtime deps, not just ours.
+# pytz ships its OWN tz database independent of the tzdata pin above, so it is
+# pinned to the EXACT version the M3 campaign ran with (2026.2) and verified
+# tz-IDENTICAL to tzdata 2025b across every oracle-catalog zone for 1985-2030
+# (525,952 pairs, 0 disagreements): analysis/verify_pytz_consistency.py. A
+# pytz-using candidate is therefore scored in a tz world consistent with the
+# pinned reference; the version skew is real in principle but moot here.
+pytz==2026.2
+python-dateutil>=2.9
+hypothesis>=6.100,<7        # property-oracle layer (M2+)
+# --- model generation (M0 pilot); only the provider(s) you run are needed ---
+anthropic>=0.40
+openai>=1.40                # OpenAI-compatible: OpenAI, DeepSeek, Together, OpenRouter, ...
+python-dotenv>=1.0

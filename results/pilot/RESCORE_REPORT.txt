@@ -1,0 +1,42 @@
+==============================================================================
+RE-SCORE: as-measured vs corrected oracle (crash-inclusive silent-failure)
+==============================================================================
+model                 n  silent_old silent_new value_new crash_new  overt loaderr
+claude-opus-4-8     152           5          6         6         0      0       0  silent_new 3.9% [2-8]
+gpt-5.5             152           0          0         0         0      0       5  silent_new 0.0% [0-2]
+deepseek-v4-flash   152           9          9         9         0      0      10  silent_new 5.9% [3-11]
+qwen3.5-9b          152          12         12        12         0     16      11  silent_new 7.9% [5-13]
+llama-3.3-70b       152          16         27        16        11     39       0  silent_new 17.8% [13-25]
+
+BARE-only (n=76): as-measured -> corrected silent% (crash-incl | value-only)
+  claude-opus-4-8     3.9% ->  3.9% [1-11]  (value-only 3.9%)
+  gpt-5.5             0.0% ->  0.0% [0-5]  (value-only 0.0%)
+  deepseek-v4-flash   6.6% ->  6.6% [3-14]  (value-only 6.6%)
+  qwen3.5-9b         10.5% -> 10.5% [5-19]  (value-only 10.5%)
+  llama-3.3-70b      15.8% -> 30.3% [21-41]  (value-only 15.8%)
+
+Corrected per-family silent (bare):
+model                calendar        dst      epoch  naive_awa    parsing  tz_conver
+claude-opus-4-8           0%        25%         0%         0%         0%         0% 
+gpt-5.5                   0%         0%         0%         0%         0%         0% 
+deepseek-v4-flash         0%        33%         0%         0%         0%         6% 
+qwen3.5-9b               25%         8%         0%        12%         0%        12% 
+llama-3.3-70b             0%        67%         0%        29%         0%        50% 
+
+rows changed by the corrected oracle: 16
+  claude-opus-4-8  C2_resolve_gap_forward     mitigation/t0.7_0    CORRECT -> SILENT_WRONG value
+  gpt-5.5          C3_disambiguate_fold       mitigation/t0.7_0    OVERT_WRONG -> CORRECT 
+  gpt-5.5          C3_disambiguate_fold       mitigation/t0.7_1    OVERT_WRONG -> CORRECT 
+  gpt-5.5          C3_disambiguate_fold       mitigation/t0.7_2    OVERT_WRONG -> CORRECT 
+  gpt-5.5          C3_disambiguate_fold       mitigation/greedy    OVERT_WRONG -> CORRECT 
+  llama-3.3-70b    A5_wall_preserving_add_days bare      /t0.7_0    CORRECT -> SILENT_WRONG crash
+  llama-3.3-70b    A5_wall_preserving_add_days bare      /t0.7_1    CORRECT -> SILENT_WRONG value
+  llama-3.3-70b    A5_wall_preserving_add_days bare      /t0.7_2    CORRECT -> SILENT_WRONG value
+  llama-3.3-70b    B2_meeting_in_zones        bare      /t0.7_0    CORRECT -> SILENT_WRONG crash
+  llama-3.3-70b    B2_meeting_in_zones        bare      /t0.7_1    CORRECT -> SILENT_WRONG value
+  llama-3.3-70b    B2_meeting_in_zones        bare      /t0.7_2    CORRECT -> SILENT_WRONG crash
+  llama-3.3-70b    B2_meeting_in_zones        bare      /greedy    CORRECT -> SILENT_WRONG value
+  llama-3.3-70b    C1_elapsed_across_dst      bare      /t0.7_0    CORRECT -> SILENT_WRONG crash
+  llama-3.3-70b    C1_elapsed_across_dst      bare      /t0.7_1    CORRECT -> SILENT_WRONG crash
+  llama-3.3-70b    C1_elapsed_across_dst      bare      /t0.7_2    CORRECT -> SILENT_WRONG crash
+  llama-3.3-70b    C1_elapsed_across_dst      bare      /greedy    CORRECT -> SILENT_WRONG crash

@@ -1,0 +1,33 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+results/raw/
+results/*.jsonl
+.hypothesis/
+.pytest_cache/
+node_modules/
+oracle_js/node_modules/
+oracle_js/.cand_tmp/
+
+# Runtime/campaign logs (not release assets). Scoped here so a STANDALONE repo
+# ignores them too — the monorepo root .gitignore's bare *.out/*.log won't exist.
+*.out
+*.log
+.DS_Store
+
+# Internal-only working docs kept out of the public artifact (audit trail, peer
+# review, decision logs) live in ../internal/. The M5 adjudication *worksheets*
+# regenerate here via make_adjudication_sample.py — keep them out of the public
+# set (the committed M5_ADJUDICATION_RESULT.md carries the cited 0/42 outcome).
+analysis/M5_ADJUDICATION.md
+analysis/M5_ADJUDICATION.html
+
+# Regenerable paper figure. The paper is distributed separately (see README) and
+# keeps its own committed copy; make_figure.py regenerates this one from campaign data.
+analysis/fig_strata.pdf
+
+# Raw extracted human bug-fix code (incl. copyleft) — reproduce via analysis/human_baseline scripts;
+# permissive-only pairs are included at artifact-packaging time. Keeps AGPL/GPL out of the repo.
+chronogauntlet/analysis/human_baseline/extracted/
+analysis/human_baseline/extracted/

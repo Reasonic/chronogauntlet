@@ -1,0 +1,142 @@
+# M4 Analysis — ChronoGauntlet full campaign (23,040 cells)
+
+_Reproduced from the frozen `results/campaign/raw_*.jsonl` (+ the extractor-recency re-grade overlay) by `analysis/m4_analysis.py`. Zero spend. Incorporates the M4 blind-audit correction package (PASS-WITH-CORRECTIONS)._
+
+**Invariants:** ✅ all pass · grid = 8 models × 120 tasks × 2 languages × 2 conditions × 6 samples · re-graded overlay rows: 119.
+
+**Headline metric = silent-wrong-VALUE**: passes the weak happy-path tests AND returns ≥1 wrong VALUE at a pinned-tzdata adversarial instant. **Crash-type silent** (happy-pass code that RAISES on an adversarial input) is disclosed as its own column — it fails loudly on the edge input in production, a materially different risk. CIs are cluster-robust (task-level percentile bootstrap, B=2000): the 12 samples per (task,language) are correlated, so iid Wilson CIs are ~1.6–2.6× too narrow; the iid CI is shown only as a sensitivity.
+
+
+## A. Headline — per-model silent-wrong (bare condition)
+
+| model | tier | n | **value** | **rate (95% cluster CI)** | crash | any-silent | nonresp | rate (iid Wilson, sensitivity) |
+|---|---|--:|--:|--:|--:|--:|--:|--:|
+| claude-haiku-4-5 | frontier | 1440 | 99 | **6.9%** [4.4–9.7] | 5 | 7.2% | 6 | [5.7–8.3] |
+| claude-opus-4-8 | frontier | 1440 | 48 | **3.3%** [1.2–6.0] | 8 | 3.9% | 0 | [2.5–4.4] |
+| claude-sonnet-5 | frontier | 1440 | 26 | **1.8%** [0.7–3.1] | 6 | 2.2% | 0 | [1.2–2.6] |
+| gpt-5.5 | frontier | 1440 | 2 | **0.1%** [0.0–0.3] | 6 | 0.6% | 4 | [0.0–0.5] |
+| deepseek-v4-flash | open | 1440 | 57 | **4.0%** [2.4–5.6] | 10 | 4.7% | 18 | [3.1–5.1] |
+| deepseek-v4-pro | open | 1440 | 32 | **2.2%** [1.0–3.5] | 6 | 2.6% | 57 | [1.6–3.1] |
+| llama-3.3-70b | open | 1440 | 136 | **9.4%** [6.7–12.6] | 43 | 12.4% | 12 | [8.0–11.1] |
+| qwen3.5-9b | open | 1440 | 80 | **5.6%** [3.8–7.5] | 22 | 7.1% | 67 | [4.5–6.9] |
+
+_Analyzable-denominator sensitivity (excludes nonresponse): claude-haiku-4-5 6.9%, claude-opus-4-8 3.3%, claude-sonnet-5 1.8%, gpt-5.5 0.1%, deepseek-v4-flash 4.0%, deepseek-v4-pro 2.3%, llama-3.3-70b 9.5%, qwen3.5-9b 5.8%. No claim below depends on the denominator choice._
+
+
+## B. Strata — what separates and what does not
+
+The audit retired the strict 8-row ranking (adjacent ranks are not separable under task-cluster resampling and flip between denominators). What the data supports is **four strata**:
+
+> **{gpt-5.5}** < **{claude-sonnet-5, deepseek-v4-pro, claude-opus-4-8, deepseek-v4-flash}** < **{qwen3.5-9b, claude-haiku-4-5}** < **{llama-3.3-70b}**
+
+Boundary tests (paired task-cluster bootstrap of the rate difference; separated ⇔ 95% CI excludes 0):
+
+| boundary | worse − better | Δvalue-rate 95% CI (pp) | separated? | Δany-rate CI | separated? |
+|---|---|--:|:-:|--:|:-:|
+| endpoint best-vs-worst | llama-3.3-70b − gpt-5.5 | [+6.53, +12.15] | ✅ | [+8.82, +15.14] | ✅ |
+| stratum 1|2 boundary | claude-sonnet-5 − gpt-5.5 | [+0.49, +3.06] | ✅ | [+0.42, +3.12] | ✅ |
+| stratum 2|3 boundary | qwen3.5-9b − deepseek-v4-flash | [-0.56, +3.82] | ✗ | [+0.07, +4.93] | ✅ |
+| stratum 3|4 boundary | llama-3.3-70b − claude-haiku-4-5 | [-0.07, +5.42] | ✗ | [+2.64, +7.92] | ✅ |
+| opus vs sonnet (dropped claim) | claude-sonnet-5 − claude-opus-4-8 | [-3.54, +0.35] | ✗ | [-3.75, +0.28] | ✗ |
+
+_The strata separate cleanly on the ANY-silent metric; on the stricter value-only headline the 2|3 and 3|4 boundaries are marginal (CIs graze 0) — the paper should claim the endpoint + the 1|2 boundary on value, and the full strata on any-silent. Tiers interleave in both directions (an open model sits in the second stratum; a frontier model sits in the third), so the frontier/open binary is not a supported claim. The **opus − sonnet** row is shown because the audit DROPPED that claim: its CI includes 0, and 66% of opus's silents come from 4 tasks it fails near-deterministically._
+
+
+## C. Per-pitfall — heatmap and the slip-through decomposition
+
+Silent-wrong-VALUE % by model × family (bare). `(u)` = distinct (task,language) units contributing; cells with u ≤ 2 are single-task artifacts, not family effects.
+
+| model | calendar | dst | epoch | naive_aware | parsing | tz_conversion |
+|---|--:|--:|--:|--:|--:|--:|
+| claude-haiku-4-5 | 0.8† | 20.8 | 0.6† | 5.2 | 2.8† | 7.6 |
+| claude-opus-4-8 | 0.0 | 17.6 | 0.0† | 2.0 | 0.0 | 0.0 |
+| claude-sonnet-5 | 3.3† | 8.3 | 0.0 | 0.8† | 0.0 | 0.0 |
+| gpt-5.5 | 0.0 | 0.9 | 0.0 | 0.0 | 0.0 | 0.0 |
+| deepseek-v4-flash | 0.8† | 18.5 | 0.0 | 2.0 | 0.7† | 1.7† |
+| deepseek-v4-pro | 0.0 | 13.9 | 0.0 | 0.2† | 0.7† | 0.0 |
+| llama-3.3-70b | 9.2 | 22.2 | 4.2 | 9.9 | 0.0 | 6.9 |
+| qwen3.5-9b | 8.3 | 11.6 | 8.3 | 5.2 | 2.1† | 0.7 |
+
+_† backed by ≤2 units. Family totals (any-silent, bare): calendar 4.1%, dst 17.1%, epoch 1.9%, naive_aware 3.8%, parsing 1.4%, tz_conversion 2.5%._
+
+**Slip-through decomposition** — silent% = P(wrong) × P(slips past happy tests | wrong). The families are hard in different WAYS:
+
+| family | P(wrong) | P(slip \| wrong) |
+|---|--:|--:|
+| calendar | 9.6% | 42.4% |
+| dst | 39.7% | 43.1% |
+| epoch | 24.9% | 7.8% |
+| naive_aware | 17.5% | 21.5% |
+| parsing | 17.1% | 8.1% |
+| tz_conversion | 19.9% | 12.4% |
+
+_dst and calendar wrongness slips past happy-path tests at ~5× the rate of epoch/parsing wrongness — the blind spot belongs to the TESTS as much as the models. This, not a per-family wrongness ranking, is the paper's point._
+
+**Concentration disclosure:** the top-10 (task,language) units carry 35% of all 586 bare silents (C1_elapsed_across_dst·python, DSW5_sla_deadline_wall_hours·python, DSW5_sla_deadline_wall_hours·js, NAV10_build_local_rolling·python, D2_weekly_meeting_series·python, …). Silent failures are systematic and task-specific, not diffuse noise.
+
+
+## D. Cross-language — outcome mix, scaffolding dose-response, visibility
+
+**The raw per-language silent-rate comparison is an artifact** (audit E3, judge-confirmed): the JS prompts embed pitfall-resolving Temporal API recipes that the Python prompts lack. Both classifications of that hinting are released in `analysis/js_hint_annotation.json`; the dose-response is decisive:
+
+| split | tasks | python silent | js silent | gap (pp) |
+|---|--:|--:|--:|--:|
+| judge/hinted | 56 | 13.62% | 2.90% | +10.71 |
+| judge/unhinted | 64 | 2.18% | 2.44% | -0.26 |
+| e3/hinted | 72 | 11.14% | 2.29% | +8.85 |
+| e3/unhinted | 48 | 2.08% | 3.21% | -1.13 |
+
+_On unhinted tasks the gap vanishes (and conditional on happy-pass, reverses). No per-language silent-RATE claim survives._
+
+**What does survive — error VISIBILITY.** Outcome mix by language (bare):
+
+| language | CORRECT | silent-any | OVERT | nonresp | total-wrong | silent share of wrong |
+|---|--:|--:|--:|--:|--:|--:|
+| python | 85.5% | 7.5% | 5.1% | 1.8% | 12.6% | **59.5%** |
+| js | 68.7% | 2.7% | 27.7% | 1.0% | 30.3% | **8.8%** |
+
+_LLM-written JS (Temporal) is wrong MORE often overall, but fails LOUDLY — dominated by crashes from stale/hallucinated Temporal API (a 2026 period effect: Temporal is young). When Python code is wrong, it is silent 58% of the time; JS, 9%. That conditional claim — not a rate comparison — is the honest cross-language finding, and it must be reported alongside the scaffolding disclosure above._
+
+
+## E. Mitigation prompt — transition matrices (bare → mitigation)
+
+Cells paired at (task, sample, language); buckets C/S/O/N = correct/silent/overt/nonresponse. The audit found the old repair/conversion labels wrong for 4/8 models; the flows below are the claim now.
+
+| model | S→C | S→S | S→O | S→N | **C→S (new silents)** | Δsilent | Δcorrect | Δovert | **Δnonresp** | mit LOAD@cap |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| claude-haiku-4-5 | 61 | 38 | 5 | 0 | 27 | -27 | +33 | -5 | -1 | 0 |
+| claude-opus-4-8 | 26 | 30 | 0 | 0 | 11 | -15 | +16 | -1 | +0 | 0 |
+| claude-sonnet-5 | 13 | 15 | 4 | 0 | 17 | +0 | +3 | -4 | +1 | 1 |
+| gpt-5.5 | 4 | 4 | 0 | 0 | 0 | -4 | -11 | +9 | +6 | 10 |
+| deepseek-v4-flash | 20 | 27 | 7 | 13 | 27 | -5 | -39 | +11 | +33 | 17 |
+| deepseek-v4-pro | 6 | 17 | 2 | 13 | 21 | +7 | -41 | +0 | +34 | 62 |
+| llama-3.3-70b | 28 | 33 | 116 | 2 | 21 | -106 | -17 | +117 | +6 | 0 |
+| qwen3.5-9b | 39 | 23 | 28 | 12 | 25 | -30 | +15 | +15 | +0 | 44 |
+
+_Readings the flows support: **llama** = conversion (silent→overt dominates); **haiku, opus** = partial repair (S→C dominates silent exits); **gpt-5.5** = zero silent→overt; its +Δovert is previously-CORRECT code degrading. **deepseek pro/flash**: the apparent effects are confounded by token-cap CENSORING — their mitigation LOAD_ERRORs sit at the 8192 cap (last column); longer prompts → longer reasoning → truncation, not behavior change. And in 7/8 models mitigation CREATES new silents from previously-correct code (C→S column) — the mitigation prompt is not risk-free._
+
+
+## F. Hidden-failure share (was: trust gap)
+
+Of the code that PASSES its own weak happy-path tests, the fraction that is actually wrong — the risk a developer's tests would hide. (Conditional sets differ per model; this is derived from §A, not independent evidence.)
+
+| model | happy-pass | oracle-pass | hidden (any) | hidden (value-only) |
+|---|--:|--:|--:|--:|
+| claude-haiku-4-5 | 82.6% | 75.7% | 8.7% | 8.3% |
+| claude-opus-4-8 | 98.1% | 94.2% | 4.0% | 3.4% |
+| claude-sonnet-5 | 97.4% | 95.2% | 2.3% | 1.9% |
+| gpt-5.5 | 99.7% | 99.1% | 0.6% | 0.1% |
+| deepseek-v4-flash | 87.8% | 83.2% | 5.3% | 4.5% |
+| deepseek-v4-pro | 84.5% | 81.9% | 3.1% | 2.6% |
+| llama-3.3-70b | 58.0% | 46.0% | 21.4% | 16.3% |
+| qwen3.5-9b | 49.3% | 42.4% | 14.4% | 11.3% |
+
+## G. Adjudication & provenance
+
+- **Dispute rate 0/28** (24 stratified + 4 judge-adjudicated top units, incl. DSW5 both languages): every silent-wrong examined is a genuine violation of an explicitly pinned prompt clause; 0 oracle bugs. Pre-registered gate < 10%: PASS.
+- 21 OVERT rows have oracle_pass=True (fail happy, pass oracle) — consistent with the definitions; disclosed here.
+- The three-observable canonical form (instant, wall, offset) is load-bearing: some genuine divergences are instant-equal and visible only in wall/offset.
+- Extractor-recency re-grade: the original extractor could grade a model's DRAFT block instead of its own correction; fixed (prefer-last), all affected rows re-scored (overlay), net headline effect ~0 but 30 cells were misgraded.
+
+---
+_Machine-checkable numbers: `results/campaign/m4_analysis.json`._

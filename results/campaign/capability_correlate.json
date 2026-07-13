@@ -1,0 +1,26 @@
+{
+  "n": 6,
+  "excluded": [
+    "llama-3.3-70b",
+    "qwen3.5-9b"
+  ],
+  "swe_verified": {
+    "gpt-5.5": 88.7,
+    "claude-opus-4-8": 88.6,
+    "claude-sonnet-5": 85.2,
+    "deepseek-v4-pro": 80.6,
+    "deepseek-v4-flash": 79.0,
+    "claude-haiku-4-5": 73.3
+  },
+  "silent_value_pct": {
+    "gpt-5.5": 0.139,
+    "claude-opus-4-8": 3.333,
+    "claude-sonnet-5": 1.806,
+    "deepseek-v4-pro": 2.222,
+    "deepseek-v4-flash": 3.958,
+    "claude-haiku-4-5": 6.875
+  },
+  "spearman_cap_vs_silent": -0.829,
+  "largest_deviation_model": "claude-opus-4-8",
+  "caveat": "vendor-self-reported SWE-bench Verified, non-identical harnesses; n=6, wide CI"
+}

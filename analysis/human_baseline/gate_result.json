@@ -1,0 +1,348 @@
+{
+  "n_candidates": 48,
+  "n_extracted": 36,
+  "n_landed": 31,
+  "n_dropped": 5,
+  "landed": [
+    {
+      "cid": 0,
+      "repo": "sdispater/pendulum",
+      "license": "MIT",
+      "bug_summary": "pendulum.Duration (a timedelta subclass) stores years/months as extra symbolic attributes alongside the normalized timedelta total. Before the fix, Duration had no __deepcopy__, so copy.deepcopy() used timedelta's inherited __reduce__, which only round-trips (days, seconds, microseconds) -- discarding years/months and silently turning a month-based duration into a fixed 30-day duration.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 1,
+      "repo": "pydantic/pydantic-extra-types",
+      "license": "MIT",
+      "bug_summary": "pydantic-extra-types' Pendulum DateTime validator rebuilt a parsed datetime component-by-component (year..microsecond, tzinfo) instead of using pendulum's own `DateTime.instance()`/`fold`-aware constructor path, silently dropping the `fold` disambiguator for ambiguous local times created during a DST fall-back transition.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 3,
+      "repo": "mverleg/pyjson_tricks",
+      "license": "BSD-3-Clause",
+      "bug_summary": "json_tricks decoded a timezone-aware datetime by passing the pytz zone object straight into datetime()'s tzinfo= kwarg, hitting the classic pytz gotcha where the resulting object silently carries the zone's oldest historical offset instead of the correct one for the given date. The fix switches to `tzinfo.localize(dt)`, pytz's supported API for attaching a zone to a naive datetime.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 4,
+      "repo": "mverleg/pyjson_tricks",
+      "license": "BSD-3-Clause",
+      "bug_summary": "json_tricks round-tripped timezone-aware datetimes through `tzinfo.localize(dt)` without ever specifying `is_dst`, so pytz's default (`is_dst=False`) silently resolved every ambiguous DST-fold local time to the same (standard-time) interpretation, even when the original datetime was actually in daylight-saving time. The fix serializes an `is_dst` field alongside the datetime and threads it through on decode.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 6,
+      "repo": "richardpenman/whois",
+      "license": "MIT",
+      "bug_summary": "whois.parser.cast_date() referenced `datetime.UTC`, an alias only added in Python 3.11. On earlier Python versions this attribute access always raised AttributeError, which the function's blanket `except Exception` silently caught, permanently routing every call through a much weaker hardcoded-format fallback parser that itself silently returns unparsed strings when no format matches -- producing a plain string where a datetime was expected.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 7,
+      "repo": "sdispater/pendulum",
+      "license": "MIT",
+      "bug_summary": "pendulum's DateTime._add_timedelta_ converted a Duration's day-based component into a plain number of elapsed seconds (`delta._total`) before delegating to add(), losing the information that the addition should be calendar-day-based (DST-aware) rather than literal-elapsed-time-based. This silently shifted the wall-clock result by the local DST offset whenever a `Duration(days=...)` addition crossed a DST transition.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 16,
+      "repo": "raiden-network/raiden-services",
+      "license": "MIT",
+      "bug_summary": "raiden-services' presence/pathfinding API computed how long a user had been offline as `datetime.now() - seen_offline_at`, where `seen_offline_at` and other 'now' snapshots (e.g. `_service_started_at`) are recorded elsewhere via `datetime.utcnow()`. Mixing local-naive 'now' with UTC-naive stored timestamps silently skews every offline-duration computation by the host machine's UTC offset. Fixed by switching all of these `datetime.now()` calls to `datetime.utcnow()` across pathfinding_service/api.py, raiden_libs/cli.py, and raiden_libs/user_address.py. Note: the candidate list's issue link is raiden-network/raiden#7043, but the actual linked fix commit lives in the sibling repo raiden-network/raiden-services, PR #1012.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 17,
+      "repo": "jdemaeyer/brightsky",
+      "license": "MIT",
+      "bug_summary": "brightsky's parse_date() used dateutil.parser.parse() (RFC-822/free-form, lenient) to parse ISO-8601 query-string timestamps. Because dateutil.parser.parse is lenient, it silently misinterprets malformed-but-common inputs (like a URL-decoded space where a '+' UTC-offset sign should be) rather than rejecting them, producing a silently wrong local time instead of an error. The fix switches to dateutil.parser.isoparse (strict ISO-8601), and adds a narrow auto-correct that retries with '+' substituted for a lone space when isoparse raises one of two specific ValueError messages -- so malformed input either round-trips correctly or fails loudly instead of parsing silently wrong.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 20,
+      "repo": "KoffeinFlummi/Chronyk",
+      "license": "MIT",
+      "bug_summary": "Chronyk's relative-date-string parser (__fromrelative__, e.g. parsing 'in 4 months') computed the new year/month via integer math and called dati.replace(year=..., month=...) BEFORE checking whether the current day-of-month was still valid for the new month; a day-clamping loop ('correct things like 31 Jan + 1 month => 31 Feb') existed but only ran AFTER that replace() call, so it could never actually execute for the case it was meant to handle -- replace() itself raises ValueError('day is out of range for month') for e.g. 31 Jan + 1 month, crashing instead of silently-or-correctly producing Feb 28. The fix reorders the logic to compute the day clamp first (against the new year/month, without mutating dati) and only calls replace() once with a valid (year, month, day) triple.",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 21,
+      "repo": "ranaroussi/yfinance",
+      "license": "Apache-2.0",
+      "bug_summary": "yfinance's Ticker.history() converted user-supplied start/end datetime objects to Unix epoch seconds via time.mktime(start.timetuple()). datetime.timetuple() discards any tzinfo on the datetime, and time.mktime() always interprets the resulting wall-clock fields as the host machine's configured local timezone -- so a caller passing an aware datetime in, say, UTC or another explicit zone got silently shifted by the difference between that zone and the host's local UTC offset, corrupting the requested date range sent to Yahoo Finance's API. Fixed by using start.timestamp() / end.timestamp(), which correctly honor the datetime's own tzinfo (and only fall back to host-local interpretation for naive datetimes, matching Python's documented semantics).",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 22,
+      "repo": "scrapinghub/dateparser",
+      "license": "BSD-3-Clause",
+      "bug_summary": "dateparser's PREFER_DATES_FROM='future'/'past' relative-time correction (Parser._correct_for_time_frame) compared its self.now reference against the parsed date object's raw .time() without ever accounting for a UTC offset that was present in the original string (e.g. '2PM UTC-4') but had already been stripped out of dateobj earlier in parsing (and passed around separately as `ptz`, never threaded into this comparison). This silently caused an unnecessary extra +1/-1 day shift whenever the input's named offset and the settings timezone disagreed about whether the target instant had actually already passed. Fixed by threading the parsed offset (tz) through _parse_absolute -> Parser.parse -> _correct_for_time_frame and converting dateobj to UTC before the past/future comparison. NOTE: the candidate list's 'fix' URL (reminder-bot/bot#15) is a downstream Discord bot's workaround (passing an explicit RELATIVE_BASE and PREFER_DATES_FROM into dateparser's settings) rather than dateparser's own fix. I instead extracted from the actual upstream library fix, scrapinghub/dateparser PR #1002, which GitHub's issue timeline confirms as the PR that closed issue #403 (reminder-bot/bot#15 also references #403 but only works around it downstream).",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 23,
+      "repo": "BittyTax/BittyTax",
+      "license": "AGPL-3.0",
+      "bug_summary": "BittyTax parsed exchange CSV timestamps with dateutil.parser.parse(ts, tzinfos={'BST': Europe/London, 'GMT': Europe/London}). Both timezone abbreviations were mapped to the same DST-observing zone object, so the resulting UTC offset depended on the calendar date of the timestamp rather than on which literal abbreviation actually appeared in the string -- a timestamp explicitly marked 'GMT' in June would silently be shifted to +01:00 (BST) instead of staying at the fixed +00:00 that 'GMT' is defined to mean (and vice versa for 'BST' on a winter date). Fixed by dropping the custom tzinfos mapping (and the config.TZ_INFOS constant) entirely, deferring to dateutil.parser.parse's own built-in handling of the 'GMT'/'UTC' tokens as fixed UTC+0.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 24,
+      "repo": "dateutil/dateutil",
+      "license": "Apache License 2.0 (dual-licensed with BSD 3-Clause for pre-2017-12-01 contributions)",
+      "bug_summary": "dateutil's tzwinbase (parent of the Windows-registry-backed tzwin/tzwinlocal classes) did not override __eq__/__ne__, so it inherited datetime.tzinfo's identity-based default equality. Two separate tz.tzwin('Eastern Standard Time') calls -- which any code doing a round-trip through serialization, caching, or repeated construction would produce -- compared as NOT equal even though they represent the identical timezone. PR #180 added a proper field-by-value __eq__/__ne__ to tzwinbase.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 25,
+      "repo": "dateutil/dateutil",
+      "license": "Apache License 2.0 (dual-licensed with BSD 3-Clause for pre-2017-12-01 contributions)",
+      "bug_summary": "dateutil.tz.tzfile.tzname(dt) (and .dst(dt)) failed to handle dt=None, which Python passes to tzinfo methods when they are invoked from a plain datetime.time object rather than a datetime.datetime. This produced an uncaught AttributeError instead of the documented None return, breaking any `%Z`/`%Q`-style strftime formatting or direct .tzname()/.dst() calls on a time-only value using a dateutil IANA zone.",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 26,
+      "repo": "sdispater/pendulum",
+      "license": "MIT License",
+      "bug_summary": "Pendulum's pure-Python regex-based common-format time parser required a literal ':' immediately after the hour digits (`(?P<hour>\\\\d{1,2}):(?P<minute>\\\\d{1,2})?...`), so a bare hour string like '13' or '20' -- valid input the C-extension-based fast parser accepted -- failed to match at all and raised ParserError, and even a dangling '13:' crashed on `int(None)`. PR #251 restructured the regex so the ':mm(:ss)?' portion is optional as a whole and defaulted minute to 0 when absent, restoring parity between the C and pure-Python parsers (originally surfaced as pendulum#210, OS-dependent inconsistency for 'parse(\\\"13:00\\\")').",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 28,
+      "repo": "snooze92/alfred-epoch-converter",
+      "license": "MIT License",
+      "bug_summary": "The Alfred epoch-converter workflow computed 'seconds since epoch' for a user-entered local time by naively subtracting a NAIVE epoch reference (`datetime.fromtimestamp(0)`, whose offset reflects whatever the system timezone's rule was on 1970-01-01, typically standard/non-DST time) from the naive input datetime, silently assuming the same UTC offset applied to both. Whenever the input date fell in a different DST regime than 1970-01-01 (e.g. any summer date in a DST-observing zone), the result was off by exactly the DST delta (1 hour in most zones). The fix resolves the input's own true UTC offset and performs the subtraction with aware datetimes so Python's arithmetic normalizes both sides to UTC correctly.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 29,
+      "repo": "agronholm/apscheduler",
+      "license": "MIT License",
+      "bug_summary": "When apscheduler's DateTrigger was constructed without an explicit run_date (meaning 'fire immediately'), it computed the default run time via `datetime.now()` (naive, in the MACHINE's system-local timezone) and then localized those naive wall-clock digits into the trigger's configured `timezone` argument without any conversion. Whenever the scheduler's configured timezone differed from the machine's actual system timezone -- e.g. a UTC-clocked server scheduling jobs in 'America/New_York' -- the one-off job fired at the wrong real-world instant, offset by the difference between the two zones' UTC offsets. The fix replaces this with `datetime.now(timezone)`, which correctly computes the current instant directly in the target timezone.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 31,
+      "repo": "googleapis/python-bigquery",
+      "license": "Apache License 2.0",
+      "bug_summary": "google-cloud-bigquery's insert_rows() serialized datetime values for the tabledata.insertAll JSON payload as a floating-point 'seconds since epoch' number (via `_microseconds_from_datetime(value) * 1e-6`). IEEE-754 double precision cannot exactly represent every microsecond-resolution Unix timestamp once you get into the billions-of-seconds range, so some values acquired a spurious trailing digit (e.g. .3537948 instead of exactly .353795); BigQuery's backend then truncated (rather than rounded) this JSON float back to microsecond precision, silently losing the last microsecond for affected rows. PR #393 switched the wire format to an RFC3339 string with an explicit 6-digit microsecond field, which round-trips exactly through JSON with no floating-point involved.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 32,
+      "repo": "weewx/weewx",
+      "license": "GPL-3.0",
+      "bug_summary": "weewx's isMidnight() decided whether a timestamp sits on a local day boundary by checking `tm_hour == 0 and tm_min == 0 and tm_sec == 0` on the localtime struct. In timezones where DST begins exactly at midnight (e.g. Brazil before 2019), the wall clock skips 00:00:00 entirely on the transition day, so the instant that is actually the start of the day never reads hour==0, and isMidnight() silently returns False. The fix (commit 0a5ee55) replaces it with isStartOfDay(), which instead compares the calendar date of time_ts against the date 0.1s earlier -- robust to any DST jump direction or size.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 34,
+      "repo": "kennethreitz/maya",
+      "license": "MIT",
+      "bug_summary": "maya's MayaDT.slang_date() produced a human-friendly 'today'/'yesterday'/date string via humanize.naturaldate(self.datetime()), but self.datetime() with no arguments always returns the timestamp labelled in UTC (MayaDT.timezone is hardcoded to 'UTC'), never the user's actual local timezone. Near local day boundaries, this makes the slang date silently off by one day for any user not in UTC. PR #38 fixed it by first converting to `self.local_timezone` (via naive=True, to_timezone=self.local_timezone) before humanizing.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 37,
+      "repo": "sdispater/pendulum",
+      "license": "MIT",
+      "bug_summary": "pendulum's DateTime class overrides __reduce__/__reduce_ex__/_getstate for pickling, but (pre-fix) defined no __deepcopy__. Python's copy.deepcopy(), when an object has no __deepcopy__, falls back to reconstructing via __reduce_ex__, whose state tuple (year, month, day, hour, minute, second, microsecond, tzinfo) omits `fold`. Any DateTime representing the ambiguous, later occurrence of a DST fall-back hour (fold=1) therefore silently loses that information on deepcopy and reconstructs as fold=0 (the earlier occurrence), changing its effective UTC offset without any error or warning. Fixed by adding an explicit __deepcopy__ that includes fold when rebuilding the instance.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 38,
+      "repo": "dateutil/dateutil",
+      "license": "Apache-2.0",
+      "bug_summary": "dateutil's parser resolves a parsed tz abbreviation via a user-supplied `tzinfos` dict or callable. Users wanted a documented way to say 'I recognize this abbreviation but deliberately have no tzinfo for it' by having tzinfos return/map to None -- but pre-fix, `_build_tzinfo` treated None the same as any other unrecognized type and raised ValueError, defeating the opt-out. Fixed by explicitly allowing `tzdata is None` to pass through as `tzinfo = None`. NOTE: this fix is dateutil PR #681, not PR #540 as listed in candidates.json -- #540 fixed a related-but-different problem (warn instead of silently returning naive on any unrecognized tzname) and issue #661 explicitly is a follow-on gap in #540's behavior, not fixed by it.",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 39,
+      "repo": "sdispater/pendulum",
+      "license": "MIT",
+      "bug_summary": "pendulum's DateTime.replace() let callers override individual fields (year, month, ..., fold) while leaving the rest unchanged. But if `fold` itself wasn't explicitly passed, the transition_rule used to reconstruct the new instance defaulted to POST_TRANSITION unconditionally, ignoring the original instance's own `fold`/DST side. So calling e.g. `.replace(second=1)` on a DateTime representing the PRE-transition (fold=0) side of an ambiguous DST fall-back hour would silently produce a result on the POST-transition (fold=1) side instead -- changing the UTC offset for a change that only touched an unrelated field. Fixed (commit 95ad44b, PR #414) by defaulting `fold = self.fold` when the caller doesn't pass fold.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 40,
+      "repo": "dateutil/dateutil",
+      "license": "Apache-2.0 OR BSD-3-Clause (dual-licensed)",
+      "bug_summary": "dateutil.parser.parse() decided whether a parsed timezone abbreviation (e.g. 'EST', 'UTC') referred to the local timezone by checking it against `time.tzname`, which is live global state that `time.tzset()` can mutate at any point after process startup. But `tz.tzlocal()`'s actual UTC-offset math (`_std_offset`/`_dst_offset`) is computed once, when the `tzlocal` class is defined. If a long-running process changes its TZ env var and calls tzset() (a real pattern in test suites and some servers), the abbreviation check and the offset computation can end up based on two different timezones, so parse() attaches a tzlocal() with the wrong offset for the matched abbreviation. Fixed by making tzlocal cache `_tzname = tuple(time.tzname)` once at class-definition time and checking the parsed abbreviation against that same cached tuple instead of live time.tzname.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 41,
+      "repo": "census-instrumentation/opencensus-python",
+      "license": "Apache-2.0",
+      "bug_summary": "opencensus-python stamped span/view/measurement timestamps via `datetime.utcnow().isoformat() + 'Z'`. Python's `datetime.isoformat()` conditionally omits the microsecond field when it is exactly 0, so the emitted timestamp string's shape varies from call to call -- occasionally missing the '.%f' fraction that other parts of the pipeline (e.g. the OC-Agent trace exporter, or round-tripping through the string) expect. Fixed via a new shared helper `to_iso_str()` that formats with `strftime('%Y-%m-%dT%H:%M:%S.%fZ')`, which always includes all 6 fractional digits.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 43,
+      "repo": "googleapis/python-storage",
+      "license": "Apache-2.0",
+      "bug_summary": "google.cloud.storage.blob.Blob.custom_time's getter parsed the GCS API's customTime string with google.cloud._helpers._rfc3339_to_datetime, which strptime's against the fixed format '%Y-%m-%dT%H:%M:%S.%fZ' -- requiring a fractional-seconds suffix. GCS (like many servers) omits the fractional part when a timestamp's sub-second value is exactly zero, so any blob whose custom_time was set with microsecond=0 raised a ValueError the moment you accessed .custom_time after a .reload(). Fixed by switching to the already-existing (originally used for protobuf Timestamp nanos) _rfc3339_nanos_to_datetime, whose regex makes the fractional part optional.",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 44,
+      "repo": "pydantic/pydantic",
+      "license": "MIT",
+      "bug_summary": "pydantic's parse_duration stringifies non-timedelta, non-bytes input via `str(value)` and matches it against two regexes (Django-style 'D HH:MM:SS.ffffff' and ISO-8601). For a timedelta field serialized to JSON as total_seconds() and round-tripped, any duration under 100 microseconds (0.0001s) serializes to a Python float whose str() representation switches to scientific notation (e.g. '9.9e-05'), which neither regex could match, so re-parsing raised a spurious DurationError/ValidationError. Fixed by adding a `scientific_notation` regex alternative that recognizes this shape and converts it into the 'seconds' keyword before constructing the timedelta.",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 8,
+      "repo": "dateutil/dateutil",
+      "license": "Apache-2.0 OR BSD-3-Clause (dual-licensed)",
+      "bug_summary": "dateutil.tz.tzwinlocal/tzwin's _isdst(dt) called dt.year unconditionally. Python's tzinfo protocol calls utcoffset(None)/dst(None) when the tzinfo is attached to a naive-time-only object (datetime.time(.... tzinfo=tw)), so dt can legitimately be None; the pre-fix code crashed with AttributeError instead of returning None as tzinfo.utcoffset()/.dst() are documented to do when the answer is unknown.",
+      "verdict": "land",
+      "reason": "latent-crash"
+    },
+    {
+      "cid": 11,
+      "repo": "sdispater/pendulum",
+      "license": "MIT",
+      "bug_summary": "pendulum's local_time() converts a unix timestamp float to broken-down (year,month,...,second) fields by first doing `seconds = int(unix_time)`. For negative floats (pre-1970 dates) with a fractional part, Python's int() truncates toward zero rather than flooring, which is off by one compared to the correct floor-division-based decomposition used for the rest of the function -- yielding an extra spurious second for historical (pre-epoch) datetimes.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 12,
+      "repo": "aimhubio/aim",
+      "license": "Apache-2.0",
+      "bug_summary": "aim's timestamp_or_none(dt) called dt.timestamp() directly. For naive datetimes (which aim used pervasively, e.g. via datetime.utcnow()), Python's .timestamp() silently interprets the naive value as host-local time rather than UTC, corrupting stored run creation/end times by the host's UTC offset whenever the host is not itself configured to UTC. The fix attaches tzinfo=pytz.utc to naive datetimes before converting.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    },
+    {
+      "cid": 14,
+      "repo": "agronholm/apscheduler",
+      "license": "MIT",
+      "bug_summary": "apscheduler's AndTrigger.next() combines multiple triggers, firing only when their next fire times converge within a threshold; when they converge it must advance each converged sub-trigger exactly once to compute the next round. The pre-fix code did this correctly in a loop, but then had one extra unconditional line (`self._next_fire_times = [t.next() for t in self.triggers]`) that advanced every trigger a second time before returning -- silently skipping one full interval of the shorter-period trigger(s) on every fire, so e.g. a daily+weekly AndTrigger fired every 14 days instead of every 7.",
+      "verdict": "land",
+      "reason": "wrong-value"
+    }
+  ],
+  "dropped": [
+    {
+      "cid": 2,
+      "repo": "googleapis/google-cloud-python",
+      "license": "Apache-2.0",
+      "bug_summary": "get_value_from_protobuf() decoded a Datastore protobuf UTC timestamp into a naive Python datetime, silently dropping the fact that the value is UTC. Callers treating the result as naive-local (a very common Python footgun) get a wrong absolute time.",
+      "verdict": "drop",
+      "reason": "buggy != fixed on a HAPPY input (not silent)"
+    },
+    {
+      "cid": 27,
+      "repo": "ranaroussi/yfinance",
+      "license": "Apache License 2.0",
+      "bug_summary": "yfinance's `history()` decided whether to keep the intraday (tz-aware, time-of-day) index or collapse it to a bare date by checking only `interval[-1] == 'm'`. Hourly intervals such as '1h' or '4h' end in 'h', not 'm', so they fell through to the date-only branch, silently dropping the time-of-day and timezone for genuinely intraday hourly data -- reported in ranaroussi/yfinance#125 and fixed by checking `interval[-1] in {'m', 'h'}`.",
+      "verdict": "drop",
+      "reason": "build: ModuleNotFoundError: No module named 'pandas'"
+    },
+    {
+      "cid": 33,
+      "repo": "dask-contrib/dask-sql",
+      "license": "MIT",
+      "bug_summary": "dask-sql's SQL TIMESTAMPADD() implementation for YEAR/QUARTER/MONTH units hand-rolled calendar arithmetic with datetime.replace(), including ad hoc special cases for leap days and month-end overflow. The month/year carry logic (`month % 12` after `year += month // 12`) produces month=0 whenever the raw month total is an exact multiple of 12, crashing on date.replace(month=0); and the leap-day special case's `year % 4 != 0` check is not the real Gregorian leap-year rule (misses the century exception), so it also mishandles Feb 29 arithmetic landing on years like 2100. PR #973 replaced all of this with pandas.tseries.offsets.DateOffset, which handles month/year carry and end-of-month clipping correctly in a single call.",
+      "verdict": "drop",
+      "reason": "happy input crashed (fixed_err=ModuleNotFoundError: No module named 'pandas' buggy_err=AttributeError: 'str' object has no attribute 'month')"
+    },
+    {
+      "cid": 35,
+      "repo": "art049/odmantic",
+      "license": "ISC",
+      "bug_summary": "odmantic's BSON datetime field validator reduced Python's microsecond precision to MongoDB's millisecond precision by rounding (`round(d.microsecond / 1000) * 1000`). Any datetime with microsecond >= 999500 rounds up to 1000000, which is outside datetime's valid 0..999999 microsecond range, so datetime.replace() raises ValueError, surfaced as a confusing pydantic ValidationError for a well-formed timestamp. The fix truncates instead of rounding (`d.microsecond - d.microsecond % 1000`), which can never overflow.",
+      "verdict": "drop",
+      "reason": "happy input crashed (fixed_err=AttributeError: 'str' object has no attribute 'microsecond' buggy_err=AttributeError: 'str' object has no attribute 'microsecond')"
+    },
+    {
+      "cid": 36,
+      "repo": "stac-utils/pystac-client",
+      "license": "Apache-2.0",
+      "bug_summary": "pystac-client's ItemSearch encoded `datetime` search parameters into ISO-8601 UTC strings via `dt.astimezone(timezone.utc)`. When a user passed a naive datetime (no tzinfo) -- which the STAC API convention treats as already UTC -- Python's astimezone() instead assumed the naive datetime was in the machine's local timezone and shifted it accordingly, so the actual query sent to the search API silently differed from what the user specified (magnitude/direction depending on whatever timezone the client machine happened to be running in). The fix only calls astimezone() when the datetime is already aware, leaving naive datetimes untouched.",
+      "verdict": "drop",
+      "reason": "happy input crashed (fixed_err=AttributeError: 'str' object has no attribute 'tzinfo' buggy_err=AttributeError: 'str' object has no attribute 'astimezone')"
+    }
+  ],
+  "skipped": [
+    {
+      "cid": 5,
+      "reason": "PR #250 (https://github.com/googleapis/python-storage/pull/250) is documentation-only: it only edits docstrings across _signing.py, blob.py, bucket.py and client.py to clarify that a naive `expiration` datetime is assumed to be UTC. Diffed the file at the PR's head commit (98e9a48e) against its base commit (22eeb2f6): `get_expiration_seconds_v4()`'s logic -- including the `if expiration.tzinfo is None: expiration = expiration.replace(tzinfo=_helpers.UTC)` line -- is byte-for-byte identical before and after the PR. No production code changed, so there is no buggy/fixed code pair to extract for this candidate."
+    },
+    {
+      "cid": 18,
+      "reason": "The fix is pendulum-library-internal pickle/serialization plumbing (Pendulum._getstate, Timezone.__getinitargs__) tied to pendulum's own Timezone/FixedTimezone classes and its internal tz-data Loader. It changes what gets embedded in a pickle stream (switching from a timezone *name* string to the actual tzinfo object, and fixing __getinitargs__ to return a 1-tuple instead of a bare scalar) rather than any date/time computation. This is not reducible to a standalone function with a clean (buggy vs fixed) input/output pair without dragging in pendulum's entire custom timezone class hierarchy and internal tz loader -- not isolable per the task's criteria."
+    },
+    {
+      "cid": 19,
+      "reason": "The candidate list's fix URL (PR #93) is test-only (tests/utils.py, a Path.home() monkeypatch fixture) and, per the PR body and GitHub's cross-reference graph, actually closes issue #91 (test run-directory dependence) -- an unrelated issue, not #90 (the timezone-dependent test outcome this candidate is about). I traced the real closer of issue #90 via GitHub's timeline API: PR #94 ('Timezone awareness for history datetime comparison'). That PR is ALSO entirely test-only (tests/test_browsers.py + tests/utils.py, adding an assert_histories_equal() helper that uses dateutil.tz to normalize timezone representation before comparison) -- no file under the browser_history/ production package is touched by either PR. Per the task's skip criteria: fix is test-only, no production code change."
+    },
+    {
+      "cid": 30,
+      "reason": "The linked CPython issue (python/cpython#81669, bpo-37488) is documentation-only: its resolution added a doc note about the utcnow()/utcfromtimestamp() 'gotcha' (naive datetimes silently representing UTC); no CPython production code changed. The candidate's 'fix' URL instead points to a downstream consumer (an odoo-dev/odoo commit) that swaps `datetime.utcnow().date()` for `datetime.now(timezone.utc).date()`. For this exact call pattern the two are numerically IDENTICAL for any given instant -- `.date()` strips tzinfo regardless, and both express the same UTC calendar day -- so there is no concrete input on which a de-classed fixed_ref/buggy_cand pair would diverge. This is a stylistic migration off a deprecated/gotcha-prone API (matching the 'Outdated/Deprecated APIs' tag), not an isolable behavioral bug with a demonstrable output difference."
+    },
+    {
+      "cid": 42,
+      "reason": "The real bug (SEED-platform/seed#1439, PR #1444, seed/serializers/properties.py: `make_naive(dt).strftime('%Y-%m-%dT%H:%M:%S')` -> `make_naive(dt).isoformat()`) only manifests as `ValueError: year=1888 is before 1900; the datetime strftime() methods require year >= 1900` under Python 2.7 (confirmed via the issue's own traceback: Django 1.9.13 / Python 2.7.11). I verified empirically on Python 3.13 that `datetime(1825,6,15,12,30,45).strftime('%Y-%m-%dT%H:%M:%S')` and the same datetime's `.isoformat()` produce byte-identical output with no error for every year tested from 1 to 1900 -- CPython 3 removed the year>=1900 strftime restriction entirely. Under a Python 3 harness there is no input on which fixed_ref and buggy_cand diverge (the only residual difference between strftime('%Y-%m-%dT%H:%M:%S') and isoformat() is incidental microsecond-inclusion, which is not the bug that was fixed and would misrepresent the actual defect). Per the task's skip criteria ('you cannot determine a concrete divergence input'), skipping rather than fabricating a false-premise adversarial case."
+    },
+    {
+      "cid": 45,
+      "reason": "The fix (Gobot1234/python-betterproto commit 193c9137, _Timestamp.from_datetime/to_datetime switching from datetime.timestamp()/datetime.fromtimestamp(tz=utc) to arithmetic relative to a fixed DATETIME_ZERO=datetime(1970,1,1,tzinfo=utc) reference) addresses upstream issue #407, whose traceback ('OSError: [Errno 22] Invalid argument' from datetime.fromtimestamp on a negative timestamp) is a Windows-CRT-specific limitation (the reporter's traceback uses backslash Windows paths). I verified empirically on this machine (macOS / glibc-class libc, Python 3.13) that datetime.fromtimestamp(-62135596800, tz=timezone.utc) -- the exact value from the bug report, corresponding to datetime.min -- succeeds and matches DATETIME_ZERO + timedelta(seconds=-62135596800) exactly, with no exception and no numeric difference, across the full representable range (datetime.min to datetime.max) that I swept. Because the divergence only manifests as an OSError on Windows' C runtime and not under Linux/macOS glibc (the platforms a Python correctness-benchmark harness would run on), there is no input under a standard Linux/macOS Python 3 harness on which fixed_ref and buggy_cand diverge. Per the task's skip criteria ('you cannot determine a concrete divergence input'), skipping rather than fabricating a platform-specific scenario the harness can't actually exercise."
+    },
+    {
+      "cid": 46,
+      "reason": "The fix (apache/airflow PR #38374) is entirely in two React/TypeScript chart components (airflow/www/static/js/dag/details/dag/RunDurationChart.tsx and .../task/TaskDuration.tsx), using moment.js Duration objects (.asSeconds()/.asMinutes()/.asHours()/.asDays()). There is no Python production code touched by this fix at all -- it is a per-datapoint unit-selection bug in a JS charting layer (each row's duration was converted to a display unit using a `unit` variable that was still being progressively updated by the same iteration, so earlier rows could be stamped with a since-superseded unit; fixed by always accumulating in seconds and dividing by a single unitDivisor chosen only after the final max is known). Porting this to a synthetic Python function would require inventing code that isn't in the diff, which the task instructions explicitly prohibit. Per the skip criteria ('not isolable' / not a Python production-code change), skipping."
+    },
+    {
+      "cid": 47,
+      "reason": "The entire diff (dateutil PR #928, closing issue #918) touches only dateutil/test/test_tz.py (one @pytest.mark.parametrize value, 'GMT' -> 'GMT0') plus a changelog entry. No file under dateutil/ (the actual library package) is changed. This is a test-only fix: the original parametrized test set os.environ['TZ']='GMT' before calling time.tzset(), which is not a valid TZ value that guarantees UTC-with-no-DST semantics on all platforms (e.g. FreeBSD refused to recognize bare 'GMT' the way glibc-based Linux does), causing test_tzlocal_offset_equal to spuriously fail/pass depending on OS -- not a bug in dateutil's own tzlocal implementation. Per the task's skip criteria ('the fix is test-only, no production code change'), skipping."
+    },
+    {
+      "cid": 9,
+      "reason": "The designated fix commit (8a135b0d) does not actually resolve the timezone-aware datetime bug described in issue #86. Before: `kwargs['start_time'].strftime('%s')`; after: `time.mktime(kwargs['start_time'].timetuple())`. Both `strftime('%s')` (a glibc extension, implemented via mktime) and `time.mktime(timetuple())` interpret the datetime's naive wall-clock fields using the *host system's local timezone*, silently discarding any tzinfo attached to `start_time`. So a timezone-aware datetime still produces the same wrong epoch before and after this commit -- confirmed by the issue's own follow-up comment from the reporter (ravangen) after the commit landed: 'I believe there is still a bug here though... timetuple does not do timezone conversions automatically so you are losing information here.' The real fix landed in a later commit that introduced `to_unix_ts()`/`is_timezone_aware()` using `start_time.astimezone(pytz.utc)` before `calendar.timegm(timetuple())`. Since the designated commit produces no concrete divergence between buggy and 'fixed' behavior for the tz-aware case (only a str-vs-float formatting difference), there is no genuine datetime-semantics fix to extract here."
+    },
+    {
+      "cid": 10,
+      "reason": "The designated fix commit (torresjrjr fork, 41c546907) was never merged upstream into python-telegram-bot/python-telegram-bot: the corresponding PRs (#1450, #1451, 'Support for tz-aware datetime.datetime objects') were both CLOSED (not merged), per `gh pr view`. Worse, the 'fixed' code as literally written is itself broken for exactly the tz-aware case it targets: the new `UTC(datetime.tzinfo)` helper class references a bare name `ZERO` inside `utcoffset()`/`dst()` (`return ZERO`) instead of `self.ZERO` or `UTC.ZERO`; `ZERO` is only defined as a class attribute, not a module global, so calling `next_t.astimezone(UTC())` on a tz-aware `next_t` raises `NameError: name 'ZERO' is not defined` (verified by executing the diff's code directly). Using this as fixed_ref ground truth would fabricate correctness that does not exist in the actual commit. No production fix for issue #1409 that both (a) landed in the real repo and (b) is not itself broken could be located."
+    },
+    {
+      "cid": 13,
+      "reason": "Test-only fix. `gh pr view 1062 --repo PrefectHQ/prefect` shows exactly one file changed: tests/test_schedules.py (11 additions, 4 deletions); no file under prefect's production `schedules.py` module is touched. The PR title is literally 'Fix poorly written schedule tests' and its body says 'Fixes two UnionSchedule tests that were failing during certain time windows.' -- this is a flaky-test fix (tests used `pendulum.now()`/wall-clock-relative fixtures that raced against real time), not a production datetime-semantics bug."
+    },
+    {
+      "cid": 15,
+      "reason": "Test-only fix. `gh api repos/sqlalchemy/sqlalchemy/commits/e8420e993764.../` shows exactly one file changed: test/dialect/postgresql/test_types.py (adds `__only_on__ = \\\"postgresql\\\"` and switches from `func.current_timestamp().select()` to a `SELECT (now() AT TIME ZONE 'utc')` expression cast to DateTime(timezone=True) for constructing test fixture timestamps). No production code in sqlalchemy's postgresql dialect or core datetime handling changed. The linked issue #9471 is explicitly about a flaky/racy *test* ('postgresql range tests might have a time-oriented race condition... seems like a transient DST issue'), not a production datetime-semantics bug in SQLAlchemy itself."
+    }
+  ]
+}

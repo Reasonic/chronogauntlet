@@ -1,0 +1,1 @@
+{"name":"chronogauntlet-oracle-js","version":"0.1.0","private":true,"type":"module","description":"JS mirror oracle (Node ICU tzdata 2025b, Temporal polyfill).","engines":{"node":"24.12.0"},"dependencies":{"@js-temporal/polyfill":"^0.5.1"}}

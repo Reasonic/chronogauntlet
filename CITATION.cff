@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use ChronoGauntlet, please cite it using these metadata."
+title: "ChronoGauntlet: a datetime/timezone silent-wrong benchmark for LLM-generated code"
+abstract: >-
+  ChronoGauntlet measures whether LLM-generated code silently mishandles dates,
+  times, and timezones: code that passes weak happy-path unit tests yet returns
+  wrong instants at DST transitions, across naive/aware boundaries, on leap days,
+  and in epoch/offset conversions. Candidates are judged by a fully executable
+  oracle — a pinned-tzdata differential reference swept at adversarial instants —
+  and scored by a per-model, per-pitfall silent-wrong-rate. No human labels, no
+  LLM judge.
+type: software
+authors:
+  - family-names: "Phanvilai"
+    given-names: "Sittiphol"
+    email: "sittiphol@gmail.com"
+keywords:
+  - software-engineering
+  - large-language-models
+  - code-generation
+  - benchmark
+  - datetime
+  - timezone
+  - differential-testing
+license: MIT
+repository-code: "https://github.com/Singularis-Research/chronogauntlet"
+# TODO on release: add `preferred-citation` (the paper) with DOI/arXiv id.

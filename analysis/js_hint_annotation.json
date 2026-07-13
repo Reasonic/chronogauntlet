@@ -1,0 +1,482 @@
+{
+ "B1_stored_naive_utc_before": {
+  "judge": true,
+  "e3": true
+ },
+ "B2_dedup_by_instant": {
+  "judge": true,
+  "e3": true
+ },
+ "B3_make_local_from_parts": {
+  "judge": true,
+  "e3": true
+ },
+ "B4_restore_local_from_utc": {
+  "judge": false,
+  "e3": true
+ },
+ "B5_last_event_index": {
+  "judge": true,
+  "e3": true
+ },
+ "B6_same_wall_fanout": {
+  "judge": true,
+  "e3": true
+ },
+ "B7_add_real_hours": {
+  "judge": true,
+  "e3": true
+ },
+ "B8_group_by_local_day": {
+  "judge": false,
+  "e3": false
+ },
+ "B9_elapsed_seconds_abs": {
+  "judge": true,
+  "e3": true
+ },
+ "B10_intervals_overlap": {
+  "judge": true,
+  "e3": true
+ },
+ "B11_normalize_mixed_to_utc": {
+  "judge": false,
+  "e3": false
+ },
+ "B12_first_after_cutoff": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG1_median_event": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG2_kth_earliest": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG3_longest_gap_seconds": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG4_sessionize": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG5_max_events_in_window": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG6_merge_intervals": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG7_merge_streams": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG8_first_out_of_order": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG9_top_k_recent": {
+  "judge": true,
+  "e3": true
+ },
+ "NAG10_busiest_local_day": {
+  "judge": false,
+  "e3": true
+ },
+ "NAG11_count_in_business_hours": {
+  "judge": false,
+  "e3": true
+ },
+ "NAG12_time_since_last": {
+  "judge": true,
+  "e3": true
+ },
+ "NAV1_start_of_local_day": {
+  "judge": false,
+  "e3": true
+ },
+ "NAV2_start_of_local_week": {
+  "judge": true,
+  "e3": false
+ },
+ "NAV3_next_business_day_9am": {
+  "judge": true,
+  "e3": false
+ },
+ "NAV4_add_business_hours": {
+  "judge": false,
+  "e3": false
+ },
+ "NAV5_round_to_local_hour": {
+  "judge": false,
+  "e3": false
+ },
+ "NAV6_same_local_day": {
+  "judge": false,
+  "e3": true
+ },
+ "NAV7_localize_with_fold": {
+  "judge": true,
+  "e3": true
+ },
+ "NAV8_next_local_midnight": {
+  "judge": false,
+  "e3": false
+ },
+ "NAV9_local_date": {
+  "judge": false,
+  "e3": true
+ },
+ "NAV10_build_local_rolling": {
+  "judge": true,
+  "e3": true
+ },
+ "NAV11_roundtrip_utc_column": {
+  "judge": false,
+  "e3": true
+ },
+ "NAV12_start_of_local_quarter": {
+  "judge": false,
+  "e3": true
+ },
+ "A1_attach_wall_zone": {
+  "judge": true,
+  "e3": true
+ },
+ "A2_to_naive_utc": {
+  "judge": false,
+  "e3": true
+ },
+ "A3_combine_in_zone": {
+  "judge": true,
+  "e3": true
+ },
+ "A4_compare_moments": {
+  "judge": true,
+  "e3": true
+ },
+ "A5_wall_preserving_add_days": {
+  "judge": true,
+  "e3": true
+ },
+ "A6_earliest_event": {
+  "judge": true,
+  "e3": true
+ },
+ "B5_arrival_local_zone": {
+  "judge": false,
+  "e3": false
+ },
+ "B6_office_clock_now": {
+  "judge": false,
+  "e3": false
+ },
+ "B7_zone_offset_minutes": {
+  "judge": false,
+  "e3": false
+ },
+ "B8_elapsed_seconds_utc": {
+  "judge": true,
+  "e3": true
+ },
+ "B9_historical_offset": {
+  "judge": false,
+  "e3": false
+ },
+ "B10_order_events_instant": {
+  "judge": true,
+  "e3": true
+ },
+ "B11_daily_counts_local": {
+  "judge": false,
+  "e3": false
+ },
+ "B12_local_to_utc_fractional": {
+  "judge": true,
+  "e3": true
+ },
+ "TZW1_business_hours_overlap": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW2_meeting_slot_three_zones": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW3_recurring_daily_to_utc": {
+  "judge": true,
+  "e3": true
+ },
+ "TZW4_render_batch_target": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW5_offset_label_historical": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW6_local_date_shift": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW7_offset_matches_claim": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW8_historical_render_ruleflip": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW9_fanout_datetimes_rollover": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW10_offset_minutes_historical": {
+  "judge": false,
+  "e3": false
+ },
+ "TZW11_recover_utc_from_fixed": {
+  "judge": true,
+  "e3": true
+ },
+ "TZW12_zone_gap_hours": {
+  "judge": false,
+  "e3": false
+ },
+ "B1_convert_named_zone": {
+  "judge": false,
+  "e3": true
+ },
+ "B2_meeting_in_zones": {
+  "judge": true,
+  "e3": true
+ },
+ "B3_local_to_utc": {
+  "judge": true,
+  "e3": true
+ },
+ "B4_same_instant": {
+  "judge": true,
+  "e3": true
+ },
+ "D1_offset_in_effect": {
+  "judge": true,
+  "e3": true
+ },
+ "D2_weekly_meeting_series": {
+  "judge": true,
+  "e3": true
+ },
+ "D3_classify_wall_time": {
+  "judge": true,
+  "e3": true
+ },
+ "D4_cron_next_fire": {
+  "judge": true,
+  "e3": true
+ },
+ "D5_add_absolute_hours": {
+  "judge": true,
+  "e3": true
+ },
+ "D6_hours_in_local_day": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW1_meter_billing_across_dst": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW2_distinct_local_days_across_dst": {
+  "judge": false,
+  "e3": true
+ },
+ "DSW3_alarm_fire_instants": {
+  "judge": false,
+  "e3": true
+ },
+ "DSW4_overtime_across_25h_day": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW5_sla_deadline_wall_hours": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW6_next_k_daily_fires": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW7_wall_duration_to_real_seconds": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW8_transition_shift_minutes": {
+  "judge": true,
+  "e3": true
+ },
+ "DSW9_historical_dst_rule_offset": {
+  "judge": true,
+  "e3": true
+ },
+ "C1_elapsed_across_dst": {
+  "judge": true,
+  "e3": true
+ },
+ "C2_resolve_gap_forward": {
+  "judge": true,
+  "e3": true
+ },
+ "C3_disambiguate_fold": {
+  "judge": true,
+  "e3": true
+ },
+ "D3_api_iso_to_epoch_seconds": {
+  "judge": false,
+  "e3": true
+ },
+ "D4_to_epoch_micros": {
+  "judge": false,
+  "e3": true
+ },
+ "D5_token_expiry_epoch": {
+  "judge": false,
+  "e3": true
+ },
+ "D6_epoch_to_iso_utc": {
+  "judge": false,
+  "e3": true
+ },
+ "D7_nanos_to_epoch_seconds_floor": {
+  "judge": false,
+  "e3": false
+ },
+ "D8_epoch_millis_to_local": {
+  "judge": false,
+  "e3": false
+ },
+ "EPW1_js_millis_matches_aware": {
+  "judge": false,
+  "e3": true
+ },
+ "EPW2_age_whole_days_epoch": {
+  "judge": false,
+  "e3": false
+ },
+ "EPW3_epoch_to_local_day": {
+  "judge": false,
+  "e3": false
+ },
+ "EPW4_normalize_unit_to_seconds": {
+  "judge": false,
+  "e3": false
+ },
+ "EPW5_iso_duration_seconds": {
+  "judge": false,
+  "e3": false
+ },
+ "EPW6_clamp_instant_to_epoch_window": {
+  "judge": false,
+  "e3": true
+ },
+ "D1_to_epoch_millis": {
+  "judge": false,
+  "e3": true
+ },
+ "D2_epoch_to_zone": {
+  "judge": false,
+  "e3": false
+ },
+ "E3_parse_eu_date_dayfirst": {
+  "judge": false,
+  "e3": false
+ },
+ "E4_shortyear_pivot": {
+  "judge": false,
+  "e3": false
+ },
+ "E5_ymd_day_before_month": {
+  "judge": false,
+  "e3": false
+ },
+ "E6_strftime_offset_roundtrip": {
+  "judge": false,
+  "e3": true
+ },
+ "E7_iso_normalize_offset": {
+  "judge": false,
+  "e3": true
+ },
+ "PRW1_rfc2822_offset_instant": {
+  "judge": false,
+  "e3": false
+ },
+ "PRW2_zone_abbrev_policy": {
+  "judge": false,
+  "e3": false
+ },
+ "PRW3_compact_iso_reject_invalid": {
+  "judge": false,
+  "e3": false
+ },
+ "PRW4_duration_hms_truncate": {
+  "judge": false,
+  "e3": false
+ },
+ "PRW5_iso_week_date": {
+  "judge": false,
+  "e3": false
+ },
+ "E1_parse_us_date": {
+  "judge": false,
+  "e3": false
+ },
+ "E2_iso_roundtrip": {
+  "judge": false,
+  "e3": true
+ },
+ "F3_age_full_years_feb29": {
+  "judge": false,
+  "e3": false
+ },
+ "F4_months_before_clamp": {
+  "judge": false,
+  "e3": false
+ },
+ "F5_days_in_month_gregorian": {
+  "judge": false,
+  "e3": false
+ },
+ "F6_nth_weekday_of_month": {
+  "judge": true,
+  "e3": false
+ },
+ "CLW1_business_days_between": {
+  "judge": true,
+  "e3": false
+ },
+ "CLW2_add_business_days": {
+  "judge": true,
+  "e3": false
+ },
+ "CLW3_iso_year_week": {
+  "judge": false,
+  "e3": false
+ },
+ "CLW4_last_business_day_of_month": {
+  "judge": true,
+  "e3": false
+ },
+ "F1_add_years_clamp": {
+  "judge": false,
+  "e3": false
+ },
+ "F2_add_one_month_clamp": {
+  "judge": false,
+  "e3": false
+ }
+}
