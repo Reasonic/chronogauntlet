@@ -178,8 +178,11 @@ P
   echo "  TZ=$TZX -> $OUT"; [ "$OUT" = "SILENT_WRONG" ] || { echo "  FAIL: TZ-dependent classification"; exit 1; }
 done
 
-echo "== 5. sha256 corpus manifest =="
-$PY -m oracle.manifest
+echo "== 5. sha256 corpus manifest — integrity ASSERT (code + tasks + frozen dataset) =="
+# Tamper gate: the working tree must match the committed MANIFEST.sha256, which now
+# covers the 23,040 frozen generations too. After a LEGITIMATE change, regenerate with
+# `python -m oracle.manifest` and commit the new MANIFEST.sha256.
+$PY -m oracle.manifest --check || { echo "MANIFEST MISMATCH — see above"; exit 1; }
 
 echo ""
 echo "ALL VERIFICATION GATES GREEN"

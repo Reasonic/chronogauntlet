@@ -7,10 +7,11 @@ tzdata==2025.2
 # and undercount silent-wrong. These are candidate-runtime deps, not just ours.
 # pytz ships its OWN tz database independent of the tzdata pin above, so it is
 # pinned to the EXACT version the M3 campaign ran with (2026.2) and verified
-# tz-IDENTICAL to tzdata 2025b across every oracle-catalog zone for 1985-2030
-# (525,952 pairs, 0 disagreements): analysis/verify_pytz_consistency.py. A
-# pytz-using candidate is therefore scored in a tz world consistent with the
-# pinned reference; the version skew is real in principle but moot here.
+# tz-IDENTICAL to tzdata 2025b across the six oracle-catalog zones for 1985-2030
+# (394,464 pairs, 0 disagreements): analysis/verify_pytz_consistency.py. The
+# consistency guarantee holds for those six zones / that window only; extending
+# the zone catalog requires re-verifying. A pytz-using candidate is therefore
+# scored in a tz world consistent with the pinned reference here.
 pytz==2026.2
 python-dateutil>=2.9
 hypothesis>=6.100,<7        # property-oracle layer (M2+)

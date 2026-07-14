@@ -46,6 +46,7 @@ import collections
 import glob
 import json
 import random
+import re
 import sys
 
 sys.path.insert(0, ".")
@@ -279,6 +280,60 @@ def sub(R, **kw):
     return [r for r in R if all(r[k] == v for k, v in kw.items())]
 
 
+# Cross-language error visibility (external review R6-W2). Two overt sub-classes:
+#  _raised: the candidate RAISED (loud) rather than returned a wrong value.
+#  _api_nonexist: the candidate called a NAME/METHOD THAT DOES NOT EXIST — for JS
+#    dominated by stale/hallucinated Temporal API (a YOUNG-API ADOPTION artifact);
+#    the honest durability probe EXCLUDES this class SYMMETRICALLY from both langs.
+_API_NONEXIST = re.compile(r"is not a function|is not a constructor"
+                           r"|Cannot read properties of undefined|has no attribute"
+                           r"|ReferenceError|name '\w+' is not defined")
+
+
+def _blob(r):
+    return " ".join(str(d) for d in (r.get("diverging") or [])) + " " + (r.get("error") or "")
+
+
+def _raised(r):
+    return "candidate raised" in _blob(r)
+
+
+def _api_nonexist(r):
+    return bool(_API_NONEXIST.search(_blob(r)))
+
+
+def _zone_distribution():
+    """Input-weighted zone distribution over the oracle sweep (external review
+    R6-W4: 'six rule-diverse zones' is input-weighted-thin)."""
+    from oracle.task import load_tasks
+    import datetime as _dt
+    zones = collections.Counter()
+    ZRE = re.compile(r"^[A-Za-z]+/[A-Za-z_+\-0-9]+$")
+
+    def walk(v):
+        if isinstance(v, (_dt.datetime, _dt.date)):
+            tz = getattr(v, "tzinfo", None)
+            if tz is not None:
+                zones[str(getattr(tz, "key", tz))] += 1
+        elif isinstance(v, str) and ZRE.match(v):
+            zones[v] += 1
+        elif isinstance(v, (list, tuple, set)):
+            for x in v:
+                walk(x)
+        elif isinstance(v, dict):
+            for x in v.values():
+                walk(x)
+    for t in load_tasks("tasks/pilot"):
+        for args in t.oracle_inputs:
+            walk(args)
+    tot = sum(zones.values())
+    EXOTIC = {"Australia/Lord_Howe", "Asia/Kathmandu", "Pacific/Apia"}
+    return {"total_zone_tagged_inputs": tot,
+            "by_zone": dict(zones.most_common()),
+            "exotic_share": sum(zones[z] for z in EXOTIC) / tot if tot else 0,
+            "top2_share": sum(c for _, c in zones.most_common(2)) / tot if tot else 0}
+
+
 # --------------------------------------------------------------------------- #
 # analysis
 # --------------------------------------------------------------------------- #
@@ -375,9 +430,23 @@ def analyze(R):
         rows = sub(R, language=lang, condition="bare")
         c = _counts(rows)
         wrong = c["silent_any"] + c["overt"]
+        # external review R6-W2: characterize OVERT. `raised` = loud crash;
+        # `api_nonexist` = calling a name/method that doesn't exist (JS: young-
+        # Temporal-adoption artifact). Durability probe = silent-share with the
+        # api_nonexist class removed SYMMETRICALLY from both languages.
+        overt_rows = [r for r in rows if r["outcome"] == OVERT]
+        raised_overt = sum(1 for r in overt_rows if _raised(r))
+        nonexist_overt = sum(1 for r in overt_rows if _api_nonexist(r))
+        wrong_excl = c["silent_any"] + (c["overt"] - nonexist_overt)
         out["language_mix"][lang] = {
             **c, "total_wrong": wrong,
             "silent_share_of_wrong": c["silent_any"] / wrong if wrong else 0,
+            "overt_raised": raised_overt,
+            "overt_raised_share": raised_overt / c["overt"] if c["overt"] else 0,
+            "overt_api_nonexist": nonexist_overt,
+            "overt_api_nonexist_share": nonexist_overt / c["overt"] if c["overt"] else 0,
+            "silent_share_of_wrong_nonexist_excluded":
+                c["silent_any"] / wrong_excl if wrong_excl else 0,
             "rate_any": c["silent_any"] / c["n"],
             "ci_any_cluster": list(_cluster_ci(rows, is_s)),
         }
@@ -385,6 +454,7 @@ def analyze(R):
         m: {lang: silent_stats(sub(R, model=m, language=lang, condition="bare"), ci=False)
             for lang in ("python", "js")} for m in models}
     out["dose_response"] = _dose_response(R)
+    out["zone_distribution"] = _zone_distribution()
 
     # Worst-case nonresponse sensitivity (external review R3-min): nonresponse
     # (token-cap / timeout) is normally excluded from the silent numerator; the
@@ -726,12 +796,20 @@ def _write_report(o, problems):
         A(f"| {lang} | {_pct(x['correct']/x['n'])}% | {_pct(x['rate_any'])}% "
           f"| {_pct(x['overt']/x['n'])}% | {_pct(x['nonresponse']/x['n'])}% "
           f"| {_pct(x['total_wrong']/x['n'])}% | **{_pct(x['silent_share_of_wrong'])}%** |")
-    A("\n_LLM-written JS (Temporal) is wrong MORE often overall, but fails LOUDLY —"
-      " dominated by crashes from stale/hallucinated Temporal API (a 2026 period effect:"
-      " Temporal is young). When Python code is wrong, it is silent 58% of the time;"
-      " JS, 9%. That conditional claim — not a rate comparison — is the honest"
-      " cross-language finding, and it must be reported alongside the scaffolding"
-      " disclosure above._\n")
+    jx = o["language_mix"]["js"]
+    px = o["language_mix"]["python"]
+    A(f"\n**Temporal-adoption disclosure (external review R6-W2):** JS overt-wrong is"
+      f" {_pct(jx['overt_raised_share'])}% loud raises, of which {_pct(jx['overt_api_nonexist_share'])}%"
+      f" ({jx['overt_api_nonexist']}/{jx['overt']}) call a Temporal method/name that DOES NOT EXIST"
+      f" — a young-API adoption artifact (vs python overt {_pct(px['overt_raised_share'])}% raises,"
+      f" {_pct(px['overt_api_nonexist_share'])}% nonexistent-name, which are genuine mature-API logic"
+      f" errors). So the RAW 59-vs-9 silent-share is a **time-indexed snapshot**: as models learn"
+      f" Temporal these crashes will convert to correct OR silent code (direction unknown). BUT the"
+      f" gap is NOT purely an artifact — excluding the nonexistent-name class SYMMETRICALLY from both"
+      f" languages, silent-share-of-wrong is python {_pct(px['silent_share_of_wrong_nonexist_excluded'])}%"
+      f" vs js {_pct(jx['silent_share_of_wrong_nonexist_excluded'])}% (still ~"
+      f"{_pct(px['silent_share_of_wrong_nonexist_excluded']-jx['silent_share_of_wrong_nonexist_excluded'])} pp)."
+      f" We report visibility as a direction-robust, magnitude-time-indexed observation._\n")
 
     A("\n## E. Mitigation prompt — transition matrices (bare → mitigation)\n")
     A("**Pairing caveat (external review R1-1):** bare and mitigation completions"

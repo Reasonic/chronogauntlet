@@ -105,7 +105,7 @@ _On unhinted tasks the gap vanishes (and conditional on happy-pass, reverses). N
 | python | 85.5% | 7.5% | 5.1% | 1.8% | 12.6% | **59.5%** |
 | js | 68.7% | 2.7% | 27.7% | 1.0% | 30.3% | **8.8%** |
 
-_LLM-written JS (Temporal) is wrong MORE often overall, but fails LOUDLY — dominated by crashes from stale/hallucinated Temporal API (a 2026 period effect: Temporal is young). When Python code is wrong, it is silent 58% of the time; JS, 9%. That conditional claim — not a rate comparison — is the honest cross-language finding, and it must be reported alongside the scaffolding disclosure above._
+**Temporal-adoption disclosure (external review R6-W2):** JS overt-wrong is 91.0% loud raises, of which 48.2% (768/1594) call a Temporal method/name that DOES NOT EXIST — a young-API adoption artifact (vs python overt 69.2% raises, 24.7% nonexistent-name, which are genuine mature-API logic errors). So the RAW 59-vs-9 silent-share is a **time-indexed snapshot**: as models learn Temporal these crashes will convert to correct OR silent code (direction unknown). BUT the gap is NOT purely an artifact — excluding the nonexistent-name class SYMMETRICALLY from both languages, silent-share-of-wrong is python 66.1% vs js 15.6% (still ~50.5 pp). We report visibility as a direction-robust, magnitude-time-indexed observation._
 
 
 ## E. Mitigation prompt — transition matrices (bare → mitigation)

@@ -63,6 +63,13 @@ def main():
         A(f"- {lang}: CORRECT {100*x['correct']/x['n']:.1f}% | silent-any {100*x['rate_any']:.1f}% "
           f"| overt {100*x['overt']/x['n']:.1f}% | nonresp {100*x['nonresponse']/x['n']:.1f}% "
           f"| total-wrong {100*x['total_wrong']/x['n']:.1f}% | silent-share-of-wrong {100*x['silent_share_of_wrong']:.1f}%")
+        A(f"  overt raised {100*x['overt_raised_share']:.0f}% | API-nonexist "
+          f"{100*x['overt_api_nonexist_share']:.0f}% | silent-share NONEXIST-EXCLUDED "
+          f"{100*x['silent_share_of_wrong_nonexist_excluded']:.1f}% (R6-W2: 59-vs-9 is a Temporal-adoption snapshot; direction robust)")
+    z = o["zone_distribution"]
+    A(f"- zone input-weighting ({z['total_zone_tagged_inputs']} tagged inputs): top-2 (NY+UTC) "
+      f"{100*z['top2_share']:.0f}%, exotic (LordHowe/Kathmandu/Apia) {100*z['exotic_share']:.1f}% "
+      f"[R6-W4: not the reviewer's 6.6%]")
     A("### Dose-response (silent-any rate)")
     for split in ("judge", "e3"):
         for h in ("hinted", "unhinted"):

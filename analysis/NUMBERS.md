@@ -40,7 +40,10 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
 
 ## Cross-language (bare)
 - python: CORRECT 85.5% | silent-any 7.5% | overt 5.1% | nonresp 1.8% | total-wrong 12.6% | silent-share-of-wrong 59.5%
+  overt raised 69% | API-nonexist 25% | silent-share NONEXIST-EXCLUDED 66.1% (R6-W2: 59-vs-9 is a Temporal-adoption snapshot; direction robust)
 - js: CORRECT 68.7% | silent-any 2.7% | overt 27.7% | nonresp 1.0% | total-wrong 30.3% | silent-share-of-wrong 8.8%
+  overt raised 91% | API-nonexist 48% | silent-share NONEXIST-EXCLUDED 15.6% (R6-W2: 59-vs-9 is a Temporal-adoption snapshot; direction robust)
+- zone input-weighting (980 tagged inputs): top-2 (NY+UTC) 66%, exotic (LordHowe/Kathmandu/Apia) 19.6% [R6-W4: not the reviewer's 6.6%]
 ### Dose-response (silent-any rate)
 - judge/hinted (56 tasks): py 13.62% js 2.90% gap +10.71pp | silent|happy py 14.99% js 4.04%
 - judge/unhinted (64 tasks): py 2.18% js 2.44% gap -0.26pp | silent|happy py 2.30% js 3.45%

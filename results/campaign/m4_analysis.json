@@ -1535,6 +1535,11 @@
       "nonresponse": 106,
       "total_wrong": 728,
       "silent_share_of_wrong": 0.5947802197802198,
+      "overt_raised": 204,
+      "overt_raised_share": 0.6915254237288135,
+      "overt_api_nonexist": 73,
+      "overt_api_nonexist_share": 0.24745762711864408,
+      "silent_share_of_wrong_nonexist_excluded": 0.6610687022900763,
       "rate_any": 0.07517361111111111,
       "ci_any_cluster": [
         0.05399305555555556,
@@ -1551,6 +1556,11 @@
       "nonresponse": 58,
       "total_wrong": 1747,
       "silent_share_of_wrong": 0.08757870635374929,
+      "overt_raised": 1450,
+      "overt_raised_share": 0.9096612296110415,
+      "overt_api_nonexist": 768,
+      "overt_api_nonexist_share": 0.48180677540777916,
+      "silent_share_of_wrong_nonexist_excluded": 0.15628192032686414,
       "rate_any": 0.0265625,
       "ci_any_cluster": [
         0.015277777777777777,
@@ -1877,6 +1887,32 @@
         "gap_pp": -1.128472222222222
       }
     }
+  },
+  "zone_distribution": {
+    "total_zone_tagged_inputs": 980,
+    "by_zone": {
+      "America/New_York": 391,
+      "UTC": 253,
+      "Europe/London": 115,
+      "Australia/Lord_Howe": 80,
+      "Asia/Kathmandu": 63,
+      "Pacific/Apia": 49,
+      "America/Sao_Paulo": 5,
+      "Europe/Berlin": 3,
+      "Africa/Lagos": 3,
+      "Pacific/Chatham": 3,
+      "UTC-05:00": 3,
+      "Europe/Istanbul": 2,
+      "Europe/Lisbon": 2,
+      "Pacific/Pago_Pago": 2,
+      "Antarctica/Casey": 2,
+      "Africa/Cairo": 1,
+      "Africa/Casablanca": 1,
+      "Pacific/Kiritimati": 1,
+      "UTC-04:00": 1
+    },
+    "exotic_share": 0.19591836734693877,
+    "top2_share": 0.6571428571428571
   },
   "worst_case_nonresponse": {
     "claude-haiku-4-5": {
