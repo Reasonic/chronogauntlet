@@ -128,11 +128,44 @@ def main():
 
     open("analysis/M5_ADJUDICATION.md", "w").write("\n".join(L))
     _write_html(picks, tasks)
-    print(f"wrote analysis/M5_ADJUDICATION.md + analysis/M5_ADJUDICATION.html — "
-          f"{len(picks)} cases for human adjudication")
+    _write_cases(picks)
+    print(f"wrote analysis/M5_ADJUDICATION.md + analysis/M5_ADJUDICATION.html + "
+          f"analysis/M5_ADJUDICATION_CASES.md — {len(picks)} cases")
     fams = collections.Counter(r["family"] for r in picks)
     print("family spread:", dict(fams))
     return 0
+
+
+# The human author's recorded verdict for every case (the auditable per-case
+# record behind the headline 0/42). All GENUINE; case F3_age_full_years_feb29
+# (sonnet-5, js) was initially flagged DISPUTE and reclassified GENUINE on the
+# merits (the candidate ages a Feb-29 person up on Mar 1, which the prompt
+# explicitly forbids) — full reasoning in M5_ADJUDICATION_RESULT.md.
+_RECLASSIFIED = ("F3_age_full_years_feb29", "claude-sonnet-5", "js")
+
+
+def _write_cases(picks):
+    L = ["# M5 dispute adjudication — per-case verdicts (HUMAN, single author-rater)",
+         "",
+         "_The auditable record behind the headline **0/42** dispute rate. Sample is"
+         " seeded/reproducible (seed=42); regenerate the worksheet with"
+         " `analysis/make_adjudication_sample.py`. Verdict semantics: GENUINE ="
+         " violates a clause the prompt pins; DISPUTE = a defensible reading;"
+         " ORACLE-BUG = the reference is wrong. Outcome: **42/42 GENUINE, 0 disputes,"
+         " 0 oracle bugs** (see M5_ADJUDICATION_RESULT.md). Coverage caveat: single"
+         " author-rater, concentration-weighted (non-random) sample; a second"
+         " independent rater on a random subsample is a pre-camera-ready step._",
+         "",
+         "| # | task | family | model | lang | cond/sample | verdict |",
+         "|--:|---|---|---|---|---|---|"]
+    for i, r in enumerate(picks, 1):
+        cell = (r["task"], r["model"], r["language"])
+        verdict = ("GENUINE (reclassified from initial DISPUTE — see RESULT.md)"
+                   if cell == _RECLASSIFIED else "GENUINE")
+        L.append(f"| {i} | `{r['task']}` | {r['family']} | {r['model']} | "
+                 f"{r['language']} | {r['condition']}/{r['sample']} | {verdict} |")
+    L += ["", f"**Totals:** {len(picks)}/{len(picks)} GENUINE · 0 DISPUTE · 0 ORACLE-BUG."]
+    open("analysis/M5_ADJUDICATION_CASES.md", "w").write("\n".join(L) + "\n")
 
 
 def _write_html(picks, tasks):

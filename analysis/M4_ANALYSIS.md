@@ -163,7 +163,8 @@ Of the code that PASSES its own weak happy-path tests, the fraction that is actu
 
 ## G. Adjudication & provenance
 
-- **Dispute rate 0/28** (24 stratified + 4 judge-adjudicated top units, incl. DSW5 both languages): every silent-wrong examined is a genuine violation of an explicitly pinned prompt clause; 0 oracle bugs. Pre-registered gate < 10%: PASS.
+- **HEADLINE dispute rate 0/42** (HUMAN-adjudicated, single author-rater; see `analysis/M5_ADJUDICATION_RESULT.md` for the outcome and `analysis/M5_ADJUDICATION_CASES.md` for the per-case verdicts): every silent-wrong examined is a genuine violation of an explicitly pinned prompt clause; 0 oracle bugs. Clopper-Pearson 95% CI [0, 8.4%] (reported descriptively — the concentration-weighted sample does not satisfy CP's random-sampling assumption). Pre-registered gate < 10%: PASS.
+  - This SUPERSEDES the earlier M4 agentic 0/28 (24 stratified + 4 judge units) for the paper's dispute-rate claim; the agentic pass is retained only as corroboration. A second independent human rater on a random subsample is a pre-camera-ready step (disclosed).
 - 21 OVERT rows have oracle_pass=True (fail happy, pass oracle) — consistent with the definitions; disclosed here.
 - The three-observable canonical form (instant, wall, offset) is load-bearing: some genuine divergences are instant-equal and visible only in wall/offset.
 - Extractor-recency re-grade: the original extractor could grade a model's DRAFT block instead of its own correction; fixed (prefer-last), all affected rows re-scored (overlay), net headline effect ~0 but 30 cells were misgraded.

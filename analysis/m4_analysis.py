@@ -798,9 +798,17 @@ def _write_report(o, problems):
           f"| {_pct(t['hidden_share_any'])}% | {_pct(t['hidden_share_value'])}% |")
 
     A("\n## G. Adjudication & provenance\n")
-    A("- **Dispute rate 0/28** (24 stratified + 4 judge-adjudicated top units, incl."
-      " DSW5 both languages): every silent-wrong examined is a genuine violation of an"
-      " explicitly pinned prompt clause; 0 oracle bugs. Pre-registered gate < 10%: PASS.")
+    A("- **HEADLINE dispute rate 0/42** (HUMAN-adjudicated, single author-rater; see"
+      " `analysis/M5_ADJUDICATION_RESULT.md` for the outcome and"
+      " `analysis/M5_ADJUDICATION_CASES.md` for the per-case verdicts): every"
+      " silent-wrong examined is a genuine violation of an explicitly pinned prompt"
+      " clause; 0 oracle bugs. Clopper-Pearson 95% CI [0, 8.4%] (reported"
+      " descriptively — the concentration-weighted sample does not satisfy CP's"
+      " random-sampling assumption). Pre-registered gate < 10%: PASS.")
+    A("  - This SUPERSEDES the earlier M4 agentic 0/28 (24 stratified + 4 judge units)"
+      " for the paper's dispute-rate claim; the agentic pass is retained only as"
+      " corroboration. A second independent human rater on a random subsample is a"
+      " pre-camera-ready step (disclosed).")
     A("- 21 OVERT rows have oracle_pass=True (fail happy, pass oracle) — consistent"
       " with the definitions; disclosed here.")
     A("- The three-observable canonical form (instant, wall, offset) is load-bearing:"
