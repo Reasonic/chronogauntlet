@@ -163,7 +163,9 @@ def main():
  .prog{{font-size:13px;color:var(--mut);white-space:nowrap}}
  button{{font:14px inherit;padding:9px 16px;border:0;border-radius:7px;background:#1a7f37;color:#fff;cursor:pointer}}
  button.sec{{background:#eef;color:#333}}
- @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;--card:#161b22}}header{{background:#161b22}} .rules,pre,.v,textarea.reason,footer,ul.div li{{background:#0d1117}} .prompt{{background:#1a1710}} .tag{{background:#22304a}} .case.done{{background:#122017}} .example{{background:#122017}} .example .why,.example .verdict-shown{{background:#0d1117}} .callout{{background:#0f1b2d;border-color:#1e3a5f}}}}
+ @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;--card:#161b22}}header{{background:#161b22}} .rules,pre,.v,textarea.reason,footer,ul.div li{{background:#0d1117}} .prompt{{background:#1a1710}} .tag{{background:#22304a}} .case.done{{background:#122017}} .example{{background:#122017}} .example .why,.example .verdict-shown{{background:#0d1117}} .callout{{background:#0f1b2d;border-color:#1e3a5f}}
+ .v.g:has(:checked){{background:#10281b;border-color:#2ea043}} .v.d:has(:checked){{background:#2a1a0d;border-color:#e07a1f}} .v.o:has(:checked){{background:#1c1436;border-color:#a371f7}}
+ .v:has(:checked){{color:var(--fg)}} .v:has(:checked) small{{color:var(--mut)}}}}
 </style></head><body>
 <header><div class="wrap"><h1>ChronoGauntlet — independent dispute adjudication</h1>
 <div class="sub">{len(picks)} randomly-sampled cases · seed {SEED} · {who} · your judgment is recorded locally in this browser</div></div></header>
