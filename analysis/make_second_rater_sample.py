@@ -132,6 +132,11 @@ def main():
  .intro{{max-width:820px;margin:14px auto 0;padding:0 20px}} .wrap{{max-width:820px;margin:0 auto;padding:0 20px}}
  .rules{{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:14px 0;font-size:13.5px}}
  .rules b{{color:var(--g)}} .rules .dd{{color:var(--d)}} .rules .oo{{color:var(--o)}}
+ .intro h2{{font-size:16px;margin:20px 0 6px}} .intro h2:first-of-type{{margin-top:2px}}
+ .intro p{{margin:6px 0}}
+ .callout{{background:#eef6ff;border:1px solid #cfe2ff;border-left:4px solid #1a66c9;border-radius:8px;padding:12px 14px;margin:14px 0;font-size:14.5px}}
+ .gloss{{margin:8px 0;padding:0;list-style:none}} .gloss li{{padding:6px 0;border-bottom:1px solid var(--line)}} .gloss li:last-child{{border-bottom:0}}
+ .steps{{margin:8px 0;padding-left:22px}} .steps li{{margin:5px 0}}
  .example{{border:1px solid var(--g);border-radius:10px;padding:16px;margin:16px 0;background:#f4faf5}}
  .example .ex-hd{{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--g);padding:3px 9px;border-radius:5px;margin-bottom:10px}}
  .example .why{{background:#fff;border:1px solid var(--line);border-radius:7px;padding:10px 12px;margin-top:10px;font-size:13.5px}}
@@ -158,21 +163,63 @@ def main():
  .prog{{font-size:13px;color:var(--mut);white-space:nowrap}}
  button{{font:14px inherit;padding:9px 16px;border:0;border-radius:7px;background:#1a7f37;color:#fff;cursor:pointer}}
  button.sec{{background:#eef;color:#333}}
- @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;--card:#161b22}}header{{background:#161b22}} .rules,pre,.v,textarea.reason,footer,ul.div li{{background:#0d1117}} .prompt{{background:#1a1710}} .tag{{background:#22304a}} .case.done{{background:#122017}} .example{{background:#122017}} .example .why,.example .verdict-shown{{background:#0d1117}}}}
+ @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;--card:#161b22}}header{{background:#161b22}} .rules,pre,.v,textarea.reason,footer,ul.div li{{background:#0d1117}} .prompt{{background:#1a1710}} .tag{{background:#22304a}} .case.done{{background:#122017}} .example{{background:#122017}} .example .why,.example .verdict-shown{{background:#0d1117}} .callout{{background:#0f1b2d;border-color:#1e3a5f}}}}
 </style></head><body>
 <header><div class="wrap"><h1>ChronoGauntlet — independent dispute adjudication</h1>
 <div class="sub">{len(picks)} randomly-sampled cases · seed {SEED} · {who} · your judgment is recorded locally in this browser</div></div></header>
 <div class="intro">
- <p>Each card below shows LLM-generated date/time code that <b>passed its own basic tests but
- disagreed with a reference answer</b> at a tricky instant. Your task: decide, for each, whether
- that disagreement is a <b>real bug</b> or a <b>defensible interpretation</b>.</p>
+ <h2>What this is</h2>
+ <p>You're helping check how reliable <b>AI-written date &amp; time code</b> is. Modern AI coding
+ assistants often produce code that looks correct and passes simple tests, yet quietly returns the
+ <b>wrong answer</b> in tricky situations &mdash; the day daylight-saving clocks change, a leap day like
+ 29&nbsp;February, or a conversion between time zones. Nothing crashes, so the wrong value slips through
+ unnoticed. Those <b>silent</b> errors are what this study is about.</p>
+ <p>To measure how often they happen, we gave several AI models 120 small, precisely-worded date/time
+ programming tasks, then compared each AI's output against a <b>reference answer</b> computed
+ independently by a trusted, version-pinned time-zone library. Whenever the AI's code passed its own
+ basic tests <em>but</em> disagreed with the reference at a hard moment, we flagged it as a possible
+ silent bug. The 40 cases below are a random sample of those flags.</p>
+
+ <h2>Why we need you</h2>
+ <p>A computer raised these flags &mdash; but a disagreement isn't automatically a bug. Two things could
+ make a flag unfair: the task's wording might be genuinely <b>ambiguous</b> (so the AI's answer is a
+ reasonable different reading), or our <b>reference answer</b> could itself be wrong. So we ask an
+ independent person &mdash; <b>you</b> &mdash; to read each flagged case and judge it. A second reviewer rates
+ the same 40 cases separately, and comparing the two sets of judgments tells us how trustworthy the
+ flags are. <b>You don't need any special background</b> &mdash; just read carefully and judge against what
+ each task actually asks for.</p>
+
+ <div class="callout"><b>Your task, in one line:</b> for each of 40 cases, decide whether the AI's
+ answer is a <b>real bug</b> (it broke a rule the task spells out), a <b>defensible reading</b> of an
+ ambiguous task, or a case where <b>our reference itself looks wrong</b>.</div>
+
+ <h2>A few terms</h2>
+ <ul class="gloss">
+  <li><b>Prompt</b> &mdash; the exact instruction the AI was given. Treat it as <b>the contract</b>: it
+   states the rules the code must follow, and you judge only against what it actually pins down.</li>
+  <li><b>Reference</b> (also called the &ldquo;oracle&rdquo;) &mdash; the correct answer, computed independently
+   by a trusted, version-pinned time library.</li>
+  <li><b>Candidate</b> &mdash; the AI's code and the value it produced.</li>
+  <li><b>Adversarial instant</b> &mdash; a deliberately tricky date/time (a daylight-saving switch, a leap
+   day, an unusual zone) chosen to expose bugs.</li>
+ </ul>
+
+ <h2>What to do for each case</h2>
+ <ol class="steps">
+  <li>Read the <b>prompt</b> &mdash; the rules the code must obey.</li>
+  <li>Look at <b>where the candidate's output diverged from the reference</b> (open the code if it helps).</li>
+  <li>Pick <b>one verdict</b> (defined just below). Add a one-line reason for DISPUTE or ORACLE-BUG.</li>
+ </ol>
+ <p style="color:var(--mut);font-size:13px">There's no target number of bugs versus disputes &mdash; judge
+ each case on its own, and there's no time pressure. Your answers <b>save automatically</b> in this
+ browser; when you've rated all 40, click <b>Export &amp; download</b> at the bottom and send the file
+ back. A fully worked example follows the three verdict definitions.</p>
  <div class="rules">
   <div><b>GENUINE</b> — the prompt explicitly pins the behavior and the code violates it (a real bug).</div>
   <div class="dd"><b class="dd">DISPUTE</b> — the prompt is silent/ambiguous on the diverging behavior, so the code's answer is a reasonable reading.</div>
   <div class="oo"><b class="oo">ORACLE-BUG</b> — the <em>reference</em> value shown looks wrong, not the candidate.</div>
-  <p style="margin:8px 0 0">The <b>prompt is the contract</b>: judge only against what it pins. Please rate every case;
-  add a one-line reason for any DISPUTE or ORACLE-BUG. Work in one browser (answers auto-save);
-  when done, click <b>Export</b> and send the downloaded file back.</p>
+  <p style="margin:8px 0 0">The <b>prompt is the contract</b> &mdash; judge each case only against what it
+  explicitly pins down, not against how you personally might interpret the task.</p>
  </div>
  <div class="example">
   <span class="ex-hd">Worked example — for guidance only, not a case to rate</span>
