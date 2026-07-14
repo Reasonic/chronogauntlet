@@ -96,6 +96,8 @@ _dst and calendar wrongness slips past happy-path tests at ~5× the rate of epoc
 
 _On unhinted tasks the gap vanishes (and conditional on happy-pass, reverses). No per-language silent-RATE claim survives._
 
+**Visibility is robust to hint removal** (external review R3-2): on UNHINTED tasks, silent-share-of-wrong is python 34.4% vs js 7.9% (judge split; e3 33.8% vs 10.9%) — the visibility DIRECTION holds with zero scaffolding, though the pooled 59-vs-9 MAGNITUDE is partly composition-driven (the unhinted gap is ~26 pp).
+
 **What does survive — error VISIBILITY.** Outcome mix by language (bare):
 
 | language | CORRECT | silent-any | OVERT | nonresp | total-wrong | silent share of wrong |
@@ -108,7 +110,7 @@ _LLM-written JS (Temporal) is wrong MORE often overall, but fails LOUDLY — dom
 
 ## E. Mitigation prompt — transition matrices (bare → mitigation)
 
-Cells paired at (task, sample, language); buckets C/S/O/N = correct/silent/overt/nonresponse. The audit found the old repair/conversion labels wrong for 4/8 models; the flows below are the claim now.
+**Pairing caveat (external review R1-1):** bare and mitigation completions are INDEPENDENT draws; only the greedy sample is a meaningful bare↔mit pair, so index-matching the 5 temperature samples is arbitrary. The Δ columns are pairing-invariant by construction; for the flow cells we also give the forced [min,max] over EVERY within-(task,language) bijection (§below), and make only pairing-robust claims. Buckets C/S/O/N = correct/silent/overt/nonresponse.
 
 | model | S→C | S→S | S→O | S→N | **C→S** | O→S | N→S | Δsilent | Δcorrect | Δovert | **Δnonresp** | L@cap |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
@@ -120,6 +122,22 @@ Cells paired at (task, sample, language); buckets C/S/O/N = correct/silent/overt
 | deepseek-v4-pro | 6 | 17 | 2 | 13 | 21 | 0 | 7 | +7 | -41 | +0 | +34 | 62 |
 | llama-3.3-70b | 28 | 33 | 116 | 2 | 21 | 19 | 0 | -106 | -17 | +117 | +6 | 0 |
 | qwen3.5-9b | 39 | 23 | 28 | 12 | 25 | 20 | 4 | -30 | +15 | +15 | +0 | 44 |
+
+**Pairing-invariant bounds** — forced [min, max] of each flow over all within-cell sample bijections (index-matched value in parens; the C→S forced-min is the ‘creates new silents’ claim):
+
+| model | S→C [min,max] | S→O [min,max] | C→S [min,max] | greedy-only S→C/S→S |
+|---|--:|--:|--:|--:|
+| claude-haiku-4-5 | 47–67 (61) | 3–10 (5) | 16–32 (27) | 11/6 |
+| claude-opus-4-8 | 17–33 (26) | 0–1 (0) | 2–17 (11) | 1/8 |
+| claude-sonnet-5 | 8–19 (13) | 2–5 (4) | 10–23 (17) | 2/2 |
+| gpt-5.5 | 4–4 (4) | 0–0 (0) | 0–0 (0) | 0/1 |
+| deepseek-v4-flash | 8–24 (20) | 2–10 (7) | 13–36 (27) | 7/4 |
+| deepseek-v4-pro | 2–18 (6) | 1–6 (2) | 10–32 (21) | 0/4 |
+| llama-3.3-70b | 19–44 (28) | 103–128 (116) | 13–31 (21) | 4/8 |
+| qwen3.5-9b | 19–54 (39) | 9–51 (28) | 7–38 (25) | 7/3 |
+
+_Pairing-robust: **7/8 models have C→S forced-min ≥ 1** (mitigation creates new silents from previously-correct code under ANY pairing). llama's silent→overt conversion (S→O) and every Δ column are pairing-invariant. The one non-robust statement is haiku ‘repairs’ (S→C can dip below S→S under an adversarial pairing); we state it at the condition level (ΔS invariant) only._
+
 
 _Reconstructible: Δsilent = (C→S + O→S + N→S) − (S→C + S→O + S→N); the script asserts this per model. **L@cap** = mitigation LOAD_ERROR cells whose tokens_out ≥ 8192 (the output cap) — censoring, not behavior._
 

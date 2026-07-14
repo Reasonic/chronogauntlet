@@ -386,20 +386,67 @@ def analyze(R):
             for lang in ("python", "js")} for m in models}
     out["dose_response"] = _dose_response(R)
 
-    # E. mitigation transition matrices (per-cell pairing at (task,sample,language))
+    # Worst-case nonresponse sensitivity (external review R3-min): nonresponse
+    # (token-cap / timeout) is normally excluded from the silent numerator; the
+    # most adversarial imputation treats EVERY nonresponse as a value-silent
+    # failure. This is a TOTAL-RISK upper bound (nonresponse cannot literally be
+    # "silent" — it never passed the happy tests), used only to test rank
+    # robustness. We report the resulting rate and re-rank.
+    wc = {}
+    for m in models:
+        s = out["per_model"][m]["bare"]
+        base = s["rate_value"]
+        worst = (s["silent_value"] + s["nonresponse"]) / s["n"]
+        wc[m] = {"value_rate": base, "nonresp_rate": s["nonresponse"] / s["n"],
+                 "worst_case_rate": worst}
+    base_order = sorted(models, key=lambda m: wc[m]["value_rate"])
+    worst_order = sorted(models, key=lambda m: wc[m]["worst_case_rate"])
+    for m in models:
+        wc[m]["base_rank"] = base_order.index(m) + 1
+        wc[m]["worst_rank"] = worst_order.index(m) + 1
+    out["worst_case_nonresponse"] = wc
+
+    # E. mitigation transition matrices. NOTE (round-5 / external-review R1-1):
+    # bare and mitigation completions are INDEPENDENT draws; only the greedy
+    # sample is a meaningful bare↔mit pair. Index-matching the 5 temperature
+    # samples is arbitrary. So we (a) report the index-matched flow as before,
+    # but (b) ALSO compute pairing-invariant bounds: the [min,max] of each flow
+    # over EVERY within-(task,language) bijection of the 6 samples, plus the
+    # greedy-only pairing. The marginal Δ columns are pairing-invariant by
+    # construction; the bounds show which flow statements survive any pairing.
     out["mitigation_transitions"] = {}
+    buck = lambda r: ("N" if r["outcome"] in NONRESP else            # noqa: E731
+                      {"CORRECT": "C", "SILENT_WRONG": "S", "OVERT_WRONG": "O"}[r["outcome"]])
     for m in models:
         bare = {(r["task"], r["sample"], r["language"]): r
                 for r in sub(R, model=m, condition="bare")}
         mit = {(r["task"], r["sample"], r["language"]): r
                for r in sub(R, model=m, condition="mitigation")}
-        buck = lambda r: ("N" if r["outcome"] in NONRESP else            # noqa: E731
-                          {"CORRECT": "C", "SILENT_WRONG": "S", "OVERT_WRONG": "O"}[r["outcome"]])
         flow = collections.Counter()
         for k, rb in bare.items():
             rm = mit.get(k)
             if rm:
                 flow[(buck(rb), buck(rm))] += 1
+        # pairing-invariant bounds + greedy-only pairing, per (task,language) cell
+        cells = collections.defaultdict(lambda: {"b": [], "m": []})
+        for (task, samp, lang), rb in bare.items():
+            cells[(task, lang)]["b"].append((samp, buck(rb)))
+        for (task, samp, lang), rm in mit.items():
+            cells[(task, lang)]["m"].append((samp, buck(rm)))
+        FLOWS = [("S", "C"), ("S", "S"), ("S", "O"), ("C", "S")]
+        bounds = {f"{a}->{b}": [0, 0] for a, b in FLOWS}
+        greedy = collections.Counter()
+        for cell in cells.values():
+            nb = collections.Counter(x[1] for x in cell["b"])
+            nm = collections.Counter(x[1] for x in cell["m"])
+            sz = len(cell["b"])  # 6
+            for a, b in FLOWS:
+                bounds[f"{a}->{b}"][0] += max(0, nb[a] + nm[b] - sz)   # forced min
+                bounds[f"{a}->{b}"][1] += min(nb[a], nm[b])            # achievable max
+            gb = dict(cell["b"]).get("greedy")
+            gm = dict(cell["m"]).get("greedy")
+            if gb and gm:
+                greedy[(gb, gm)] += 1
         cb, cm = _counts(list(bare.values())), _counts(list(mit.values()))
         cap_le = sum(1 for r in mit.values()
                      if r["outcome"] == LOAD and (r.get("tokens_out") or 0) >= TOKEN_CAP)
@@ -417,6 +464,9 @@ def analyze(R):
             "mit_load_at_token_cap": cap_le,
             "bare_load": sum(1 for r in bare.values() if r["outcome"] == LOAD),
             "mit_load": sum(1 for r in mit.values() if r["outcome"] == LOAD),
+            # pairing robustness: forced [min,max] of each flow over all bijections
+            "flow_bounds": bounds,
+            "greedy_flow": {f"{a}->{b}": greedy.get((a, b), 0) for a, b in FLOWS},
         }
         # self-check: the delta must reconcile exactly from the flows (complete pairing)
         t = out["mitigation_transitions"][m]
@@ -479,11 +529,15 @@ def _dose_response(R):
                 rows = [r for r in R if r["condition"] == "bare"
                         and r["language"] == lang and r["task"] in tset]
                 k = sum(1 for r in rows if r["outcome"] == SILENT)
+                ov = sum(1 for r in rows if r["outcome"] == OVERT)
                 happy = [r for r in rows if r["happy_pass"]]
                 kh = sum(1 for r in happy if r["outcome"] == SILENT)
                 row[lang] = {"n": len(rows), "silent": k,
                              "rate": k / len(rows) if rows else 0,
-                             "silent_given_happy": kh / len(happy) if happy else 0}
+                             "silent_given_happy": kh / len(happy) if happy else 0,
+                             # error VISIBILITY: silent share of all wrong (external
+                             # review R3-2 — is the visibility gap robust to hint removal?)
+                             "silent_share_of_wrong": k / (k + ov) if (k + ov) else 0}
             row["gap_pp"] = 100 * (row["python"]["rate"] - row["js"]["rate"])
             res[split_name]["hinted" if hinted else "unhinted"] = row
     return res
@@ -656,6 +710,14 @@ def _write_report(o, problems):
               f"| {_pct(d['js']['rate'],2)}% | {d['gap_pp']:+.2f} |")
     A("\n_On unhinted tasks the gap vanishes (and conditional on happy-pass, reverses)."
       " No per-language silent-RATE claim survives._\n")
+    ju, ej = o["dose_response"]["judge"]["unhinted"], o["dose_response"]["e3"]["unhinted"]
+    A(f"**Visibility is robust to hint removal** (external review R3-2): on UNHINTED"
+      f" tasks, silent-share-of-wrong is python {_pct(ju['python']['silent_share_of_wrong'])}%"
+      f" vs js {_pct(ju['js']['silent_share_of_wrong'])}% (judge split;"
+      f" e3 {_pct(ej['python']['silent_share_of_wrong'])}% vs"
+      f" {_pct(ej['js']['silent_share_of_wrong'])}%) — the visibility DIRECTION holds"
+      f" with zero scaffolding, though the pooled 59-vs-9 MAGNITUDE is partly"
+      f" composition-driven (the unhinted gap is ~26 pp).\n")
     A("**What does survive — error VISIBILITY.** Outcome mix by language (bare):\n")
     A("| language | CORRECT | silent-any | OVERT | nonresp | total-wrong | silent share of wrong |")
     A("|---|--:|--:|--:|--:|--:|--:|")
@@ -672,9 +734,13 @@ def _write_report(o, problems):
       " disclosure above._\n")
 
     A("\n## E. Mitigation prompt — transition matrices (bare → mitigation)\n")
-    A("Cells paired at (task, sample, language); buckets C/S/O/N ="
-      " correct/silent/overt/nonresponse. The audit found the old repair/conversion"
-      " labels wrong for 4/8 models; the flows below are the claim now.\n")
+    A("**Pairing caveat (external review R1-1):** bare and mitigation completions"
+      " are INDEPENDENT draws; only the greedy sample is a meaningful bare↔mit pair,"
+      " so index-matching the 5 temperature samples is arbitrary. The Δ columns are"
+      " pairing-invariant by construction; for the flow cells we also give the"
+      " forced [min,max] over EVERY within-(task,language) bijection (§below), and"
+      " make only pairing-robust claims. Buckets C/S/O/N = correct/silent/overt/"
+      "nonresponse.\n")
     A("| model | S→C | S→S | S→O | S→N | **C→S** | O→S | N→S | Δsilent | Δcorrect | Δovert | **Δnonresp** | L@cap |")
     A("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|")
     for m in o["models"]:
@@ -684,6 +750,25 @@ def _write_report(o, problems):
           f"| {en['C']} | {en['O']} | {en['N']} "
           f"| {t['d_silent']:+d} | {t['d_correct']:+d} "
           f"| {t['d_overt']:+d} | {t['d_nonresponse']:+d} | {t['mit_load_at_token_cap']} |")
+    A("\n**Pairing-invariant bounds** — forced [min, max] of each flow over all"
+      " within-cell sample bijections (index-matched value in parens; the C→S"
+      " forced-min is the ‘creates new silents’ claim):\n")
+    A("| model | S→C [min,max] | S→O [min,max] | C→S [min,max] | greedy-only S→C/S→S |")
+    A("|---|--:|--:|--:|--:|")
+    for m in o["models"]:
+        t = o["mitigation_transitions"][m]
+        b, g = t["flow_bounds"], t["greedy_flow"]
+        A(f"| {m} | {b['S->C'][0]}–{b['S->C'][1]} ({t['silent_exits']['C']})"
+          f" | {b['S->O'][0]}–{b['S->O'][1]} ({t['silent_exits']['O']})"
+          f" | {b['C->S'][0]}–{b['C->S'][1]} ({t['new_silents_from_correct']})"
+          f" | {g['S->C']}/{g['S->S']} |")
+    nfrom = sum(1 for m in o["models"]
+                if o["mitigation_transitions"][m]["flow_bounds"]["C->S"][0] >= 1)
+    A(f"\n_Pairing-robust: **{nfrom}/8 models have C→S forced-min ≥ 1** (mitigation"
+      " creates new silents from previously-correct code under ANY pairing). llama's"
+      " silent→overt conversion (S→O) and every Δ column are pairing-invariant. The"
+      " one non-robust statement is haiku ‘repairs’ (S→C can dip below S→S under an"
+      " adversarial pairing); we state it at the condition level (ΔS invariant) only._\n")
     A("\n_Reconstructible: Δsilent = (C→S + O→S + N→S) − (S→C + S→O + S→N); the script"
       " asserts this per model. **L@cap** = mitigation LOAD_ERROR cells whose"
       f" tokens_out ≥ {TOKEN_CAP} (the output cap) — censoring, not behavior._")

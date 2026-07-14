@@ -72,13 +72,29 @@ def main():
               f"| silent|happy py {100*d['python']['silent_given_happy']:.2f}% "
               f"js {100*d['js']['silent_given_happy']:.2f}%")
 
-    A("\n## Mitigation transitions (bare->mitigation, paired)")
+    A("\n## Mitigation transitions (bare->mitigation; samples are INDEPENDENT draws")
+    A("## — index-pairing arbitrary; [min,max] = forced bounds over all within-cell bijections)")
     for m in o["models"]:
         t = o["mitigation_transitions"][m]
-        e = t["silent_exits"]
-        A(f"- {m}: S->C {e['C']} S->S {e['S']} S->O {e['O']} S->N {e['N']} | C->S {t['new_silents_from_correct']} "
-          f"| dS {t['d_silent']:+d} dC {t['d_correct']:+d} dO {t['d_overt']:+d} dN {t['d_nonresponse']:+d} "
-          f"| mitLOAD@cap {t['mit_load_at_token_cap']} (bareLOAD {t['bare_load']} mitLOAD {t['mit_load']})")
+        e, b, g = t["silent_exits"], t["flow_bounds"], t["greedy_flow"]
+        A(f"- {m}: S->C {e['C']}{b['S->C']} S->S {e['S']}{b['S->S']} S->O {e['O']}{b['S->O']} "
+          f"| C->S {t['new_silents_from_correct']}{b['C->S']} | dS {t['d_silent']:+d} dN {t['d_nonresponse']:+d} "
+          f"| greedy S->C/S->S {g['S->C']}/{g['S->S']} | mitLOAD@cap {t['mit_load_at_token_cap']}")
+    nfrom = sum(1 for m in o["models"] if o["mitigation_transitions"][m]["flow_bounds"]["C->S"][0] >= 1)
+    A(f"- PAIRING-ROBUST: {nfrom}/8 models C->S forced-min>=1 (creates new silents under ANY pairing);")
+    A("  llama S->O bounds [103,128] robust; all d-columns pairing-invariant; only haiku 'repairs' (S->C vs S->S) can flip")
+
+    A("\n## Worst-case nonresponse (TOTAL-RISK bound: impute every nonresponse as failure)")
+    for m in o["models"]:
+        w = o["worst_case_nonresponse"][m]
+        A(f"- {m}: value {100*w['value_rate']:.1f}% -> worst {100*w['worst_case_rate']:.1f}% "
+          f"(nonresp {100*w['nonresp_rate']:.1f}%) | rank {w['base_rank']}->{w['worst_rank']}")
+
+    A("\n## Cross-language visibility robustness to hint removal (unhinted subset)")
+    for split in ("judge", "e3"):
+        u = o["dose_response"][split]["unhinted"]
+        A(f"- {split}/unhinted: silent-share-of-wrong py {100*u['python']['silent_share_of_wrong']:.1f}% "
+          f"vs js {100*u['js']['silent_share_of_wrong']:.1f}% (direction robust; pooled 59-vs-9 magnitude partly composition)")
 
     A("\n## Hidden-failure share (bare)")
     for m in o["models"]:

@@ -47,15 +47,32 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
 - e3/hinted (72 tasks): py 11.14% js 2.29% gap +8.85pp | silent|happy py 12.18% js 3.26%
 - e3/unhinted (48 tasks): py 2.08% js 3.21% gap -1.13pp | silent|happy py 2.18% js 4.39%
 
-## Mitigation transitions (bare->mitigation, paired)
-- claude-haiku-4-5: S->C 61 S->S 38 S->O 5 S->N 0 | C->S 27 | dS -27 dC +33 dO -5 dN -1 | mitLOAD@cap 0 (bareLOAD 0 mitLOAD 0)
-- claude-opus-4-8: S->C 26 S->S 30 S->O 0 S->N 0 | C->S 11 | dS -15 dC +16 dO -1 dN +0 | mitLOAD@cap 0 (bareLOAD 0 mitLOAD 0)
-- claude-sonnet-5: S->C 13 S->S 15 S->O 4 S->N 0 | C->S 17 | dS +0 dC +3 dO -4 dN +1 | mitLOAD@cap 1 (bareLOAD 0 mitLOAD 1)
-- gpt-5.5: S->C 4 S->S 4 S->O 0 S->N 0 | C->S 0 | dS -4 dC -11 dO +9 dN +6 | mitLOAD@cap 10 (bareLOAD 4 mitLOAD 10)
-- deepseek-v4-flash: S->C 20 S->S 27 S->O 7 S->N 13 | C->S 27 | dS -5 dC -39 dO +11 dN +33 | mitLOAD@cap 17 (bareLOAD 18 mitLOAD 49)
-- deepseek-v4-pro: S->C 6 S->S 17 S->O 2 S->N 13 | C->S 21 | dS +7 dC -41 dO +0 dN +34 | mitLOAD@cap 62 (bareLOAD 56 mitLOAD 91)
-- llama-3.3-70b: S->C 28 S->S 33 S->O 116 S->N 2 | C->S 21 | dS -106 dC -17 dO +117 dN +6 | mitLOAD@cap 0 (bareLOAD 11 mitLOAD 15)
-- qwen3.5-9b: S->C 39 S->S 23 S->O 28 S->N 12 | C->S 25 | dS -30 dC +15 dO +15 dN +0 | mitLOAD@cap 44 (bareLOAD 65 mitLOAD 67)
+## Mitigation transitions (bare->mitigation; samples are INDEPENDENT draws
+## — index-pairing arbitrary; [min,max] = forced bounds over all within-cell bijections)
+- claude-haiku-4-5: S->C 61[47, 67] S->S 38[31, 51] S->O 5[3, 10] | C->S 27[16, 32] | dS -27 dN -1 | greedy S->C/S->S 11/6 | mitLOAD@cap 0
+- claude-opus-4-8: S->C 26[17, 33] S->S 30[23, 38] S->O 0[0, 1] | C->S 11[2, 17] | dS -15 dN +0 | greedy S->C/S->S 1/8 | mitLOAD@cap 0
+- claude-sonnet-5: S->C 13[8, 19] S->S 15[8, 21] S->O 4[2, 5] | C->S 17[10, 23] | dS +0 dN +1 | greedy S->C/S->S 2/2 | mitLOAD@cap 1
+- gpt-5.5: S->C 4[4, 4] S->S 4[4, 4] S->O 0[0, 0] | C->S 0[0, 0] | dS -4 dN +6 | greedy S->C/S->S 0/1 | mitLOAD@cap 10
+- deepseek-v4-flash: S->C 20[8, 24] S->S 27[14, 43] S->O 7[2, 10] | C->S 27[13, 36] | dS -5 dN +33 | greedy S->C/S->S 7/4 | mitLOAD@cap 17
+- deepseek-v4-pro: S->C 6[2, 18] S->S 17[5, 25] S->O 2[1, 6] | C->S 21[10, 32] | dS +7 dN +34 | greedy S->C/S->S 0/4 | mitLOAD@cap 62
+- llama-3.3-70b: S->C 28[19, 44] S->S 33[21, 40] S->O 116[103, 128] | C->S 21[13, 31] | dS -106 dN +6 | greedy S->C/S->S 4/8 | mitLOAD@cap 0
+- qwen3.5-9b: S->C 39[19, 54] S->S 23[4, 52] S->O 28[9, 51] | C->S 25[7, 38] | dS -30 dN +0 | greedy S->C/S->S 7/3 | mitLOAD@cap 44
+- PAIRING-ROBUST: 7/8 models C->S forced-min>=1 (creates new silents under ANY pairing);
+  llama S->O bounds [103,128] robust; all d-columns pairing-invariant; only haiku 'repairs' (S->C vs S->S) can flip
+
+## Worst-case nonresponse (TOTAL-RISK bound: impute every nonresponse as failure)
+- claude-haiku-4-5: value 6.9% -> worst 7.3% (nonresp 0.4%) | rank 7->6
+- claude-opus-4-8: value 3.3% -> worst 3.3% (nonresp 0.0%) | rank 4->3
+- claude-sonnet-5: value 1.8% -> worst 1.8% (nonresp 0.0%) | rank 2->2
+- gpt-5.5: value 0.1% -> worst 0.4% (nonresp 0.3%) | rank 1->1
+- deepseek-v4-flash: value 4.0% -> worst 5.2% (nonresp 1.2%) | rank 5->4
+- deepseek-v4-pro: value 2.2% -> worst 6.2% (nonresp 4.0%) | rank 3->5
+- llama-3.3-70b: value 9.4% -> worst 10.3% (nonresp 0.8%) | rank 8->8
+- qwen3.5-9b: value 5.6% -> worst 10.2% (nonresp 4.7%) | rank 6->7
+
+## Cross-language visibility robustness to hint removal (unhinted subset)
+- judge/unhinted: silent-share-of-wrong py 34.4% vs js 7.9% (direction robust; pooled 59-vs-9 magnitude partly composition)
+- e3/unhinted: silent-share-of-wrong py 33.8% vs js 10.9% (direction robust; pooled 59-vs-9 magnitude partly composition)
 
 ## Hidden-failure share (bare)
 - claude-haiku-4-5: happy 82.6% oracle 75.7% | hidden-any 8.7% hidden-value 8.3%

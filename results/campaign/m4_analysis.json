@@ -1808,13 +1808,15 @@
           "n": 2688,
           "silent": 366,
           "rate": 0.13616071428571427,
-          "silent_given_happy": 0.14987714987714987
+          "silent_given_happy": 0.14987714987714987,
+          "silent_share_of_wrong": 0.6866791744840526
         },
         "js": {
           "n": 2688,
           "silent": 78,
           "rate": 0.029017857142857144,
-          "silent_given_happy": 0.04035178479048112
+          "silent_given_happy": 0.04035178479048112,
+          "silent_share_of_wrong": 0.0975
         },
         "gap_pp": 10.714285714285712
       },
@@ -1824,13 +1826,15 @@
           "n": 3072,
           "silent": 67,
           "rate": 0.021809895833333332,
-          "silent_given_happy": 0.02296880356530682
+          "silent_given_happy": 0.02296880356530682,
+          "silent_share_of_wrong": 0.3435897435897436
         },
         "js": {
           "n": 3072,
           "silent": 75,
           "rate": 0.0244140625,
-          "silent_given_happy": 0.034482758620689655
+          "silent_given_happy": 0.034482758620689655,
+          "silent_share_of_wrong": 0.0791974656810982
         },
         "gap_pp": -0.2604166666666668
       }
@@ -1842,13 +1846,15 @@
           "n": 3456,
           "silent": 385,
           "rate": 0.11140046296296297,
-          "silent_given_happy": 0.12183544303797468
+          "silent_given_happy": 0.12183544303797468,
+          "silent_share_of_wrong": 0.6569965870307167
         },
         "js": {
           "n": 3456,
           "silent": 79,
           "rate": 0.022858796296296297,
-          "silent_given_happy": 0.032604209657449444
+          "silent_given_happy": 0.032604209657449444,
+          "silent_share_of_wrong": 0.07383177570093458
         },
         "gap_pp": 8.854166666666668
       },
@@ -1858,16 +1864,76 @@
           "n": 2304,
           "silent": 48,
           "rate": 0.020833333333333332,
-          "silent_given_happy": 0.021828103683492497
+          "silent_given_happy": 0.021828103683492497,
+          "silent_share_of_wrong": 0.3380281690140845
         },
         "js": {
           "n": 2304,
           "silent": 74,
           "rate": 0.03211805555555555,
-          "silent_given_happy": 0.04391691394658754
+          "silent_given_happy": 0.04391691394658754,
+          "silent_share_of_wrong": 0.10930576070901034
         },
         "gap_pp": -1.128472222222222
       }
+    }
+  },
+  "worst_case_nonresponse": {
+    "claude-haiku-4-5": {
+      "value_rate": 0.06875,
+      "nonresp_rate": 0.004166666666666667,
+      "worst_case_rate": 0.07291666666666667,
+      "base_rank": 7,
+      "worst_rank": 6
+    },
+    "claude-opus-4-8": {
+      "value_rate": 0.03333333333333333,
+      "nonresp_rate": 0.0,
+      "worst_case_rate": 0.03333333333333333,
+      "base_rank": 4,
+      "worst_rank": 3
+    },
+    "claude-sonnet-5": {
+      "value_rate": 0.018055555555555554,
+      "nonresp_rate": 0.0,
+      "worst_case_rate": 0.018055555555555554,
+      "base_rank": 2,
+      "worst_rank": 2
+    },
+    "gpt-5.5": {
+      "value_rate": 0.001388888888888889,
+      "nonresp_rate": 0.002777777777777778,
+      "worst_case_rate": 0.004166666666666667,
+      "base_rank": 1,
+      "worst_rank": 1
+    },
+    "deepseek-v4-flash": {
+      "value_rate": 0.03958333333333333,
+      "nonresp_rate": 0.0125,
+      "worst_case_rate": 0.052083333333333336,
+      "base_rank": 5,
+      "worst_rank": 4
+    },
+    "deepseek-v4-pro": {
+      "value_rate": 0.022222222222222223,
+      "nonresp_rate": 0.03958333333333333,
+      "worst_case_rate": 0.06180555555555556,
+      "base_rank": 3,
+      "worst_rank": 5
+    },
+    "llama-3.3-70b": {
+      "value_rate": 0.09444444444444444,
+      "nonresp_rate": 0.008333333333333333,
+      "worst_case_rate": 0.10277777777777777,
+      "base_rank": 8,
+      "worst_rank": 8
+    },
+    "qwen3.5-9b": {
+      "value_rate": 0.05555555555555555,
+      "nonresp_rate": 0.04652777777777778,
+      "worst_case_rate": 0.10208333333333333,
+      "base_rank": 6,
+      "worst_rank": 7
     }
   },
   "mitigation_transitions": {
@@ -1905,7 +1971,31 @@
       "d_nonresponse": -1,
       "mit_load_at_token_cap": 0,
       "bare_load": 0,
-      "mit_load": 0
+      "mit_load": 0,
+      "flow_bounds": {
+        "S->C": [
+          47,
+          67
+        ],
+        "S->S": [
+          31,
+          51
+        ],
+        "S->O": [
+          3,
+          10
+        ],
+        "C->S": [
+          16,
+          32
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 11,
+        "S->S": 6,
+        "S->O": 0,
+        "C->S": 6
+      }
     },
     "claude-opus-4-8": {
       "flow": {
@@ -1935,7 +2025,31 @@
       "d_nonresponse": 0,
       "mit_load_at_token_cap": 0,
       "bare_load": 0,
-      "mit_load": 0
+      "mit_load": 0,
+      "flow_bounds": {
+        "S->C": [
+          17,
+          33
+        ],
+        "S->S": [
+          23,
+          38
+        ],
+        "S->O": [
+          0,
+          1
+        ],
+        "C->S": [
+          2,
+          17
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 1,
+        "S->S": 8,
+        "S->O": 0,
+        "C->S": 0
+      }
     },
     "claude-sonnet-5": {
       "flow": {
@@ -1967,7 +2081,31 @@
       "d_nonresponse": 1,
       "mit_load_at_token_cap": 1,
       "bare_load": 0,
-      "mit_load": 1
+      "mit_load": 1,
+      "flow_bounds": {
+        "S->C": [
+          8,
+          19
+        ],
+        "S->S": [
+          8,
+          21
+        ],
+        "S->O": [
+          2,
+          5
+        ],
+        "C->S": [
+          10,
+          23
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 2,
+        "S->S": 2,
+        "S->O": 2,
+        "C->S": 2
+      }
     },
     "gpt-5.5": {
       "flow": {
@@ -1998,7 +2136,31 @@
       "d_nonresponse": 6,
       "mit_load_at_token_cap": 10,
       "bare_load": 4,
-      "mit_load": 10
+      "mit_load": 10,
+      "flow_bounds": {
+        "S->C": [
+          4,
+          4
+        ],
+        "S->S": [
+          4,
+          4
+        ],
+        "S->O": [
+          0,
+          0
+        ],
+        "C->S": [
+          0,
+          0
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 0,
+        "S->S": 1,
+        "S->O": 0,
+        "C->S": 0
+      }
     },
     "deepseek-v4-flash": {
       "flow": {
@@ -2037,7 +2199,31 @@
       "d_nonresponse": 33,
       "mit_load_at_token_cap": 17,
       "bare_load": 18,
-      "mit_load": 49
+      "mit_load": 49,
+      "flow_bounds": {
+        "S->C": [
+          8,
+          24
+        ],
+        "S->S": [
+          14,
+          43
+        ],
+        "S->O": [
+          2,
+          10
+        ],
+        "C->S": [
+          13,
+          36
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 7,
+        "S->S": 4,
+        "S->O": 1,
+        "C->S": 6
+      }
     },
     "deepseek-v4-pro": {
       "flow": {
@@ -2075,7 +2261,31 @@
       "d_nonresponse": 34,
       "mit_load_at_token_cap": 62,
       "bare_load": 56,
-      "mit_load": 91
+      "mit_load": 91,
+      "flow_bounds": {
+        "S->C": [
+          2,
+          18
+        ],
+        "S->S": [
+          5,
+          25
+        ],
+        "S->O": [
+          1,
+          6
+        ],
+        "C->S": [
+          10,
+          32
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 0,
+        "S->S": 4,
+        "S->O": 1,
+        "C->S": 4
+      }
     },
     "llama-3.3-70b": {
       "flow": {
@@ -2113,7 +2323,31 @@
       "d_nonresponse": 6,
       "mit_load_at_token_cap": 0,
       "bare_load": 11,
-      "mit_load": 15
+      "mit_load": 15,
+      "flow_bounds": {
+        "S->C": [
+          19,
+          44
+        ],
+        "S->S": [
+          21,
+          40
+        ],
+        "S->O": [
+          103,
+          128
+        ],
+        "C->S": [
+          13,
+          31
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 4,
+        "S->S": 8,
+        "S->O": 20,
+        "C->S": 3
+      }
     },
     "qwen3.5-9b": {
       "flow": {
@@ -2152,7 +2386,31 @@
       "d_nonresponse": 0,
       "mit_load_at_token_cap": 44,
       "bare_load": 65,
-      "mit_load": 67
+      "mit_load": 67,
+      "flow_bounds": {
+        "S->C": [
+          19,
+          54
+        ],
+        "S->S": [
+          4,
+          52
+        ],
+        "S->O": [
+          9,
+          51
+        ],
+        "C->S": [
+          7,
+          38
+        ]
+      },
+      "greedy_flow": {
+        "S->C": 7,
+        "S->S": 3,
+        "S->O": 4,
+        "C->S": 6
+      }
     }
   },
   "hidden_failure": {
