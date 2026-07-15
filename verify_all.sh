@@ -178,7 +178,26 @@ P
   echo "  TZ=$TZX -> $OUT"; [ "$OUT" = "SILENT_WRONG" ] || { echo "  FAIL: TZ-dependent classification"; exit 1; }
 done
 
-echo "== 5. sha256 corpus manifest — integrity ASSERT (code + tasks + frozen dataset) =="
+echo "== 5. practitioner test pack — selftests (drop-in adversarial-instant tests) =="
+# Python canaries + is_dst lint selftest need no extra deps; the JS canaries need the
+# Temporal polyfill — reuse the one already installed under oracle_js/ (offline; the pack
+# ships its own package.json/lock so `cd testpack/js && npm install` also works standalone).
+$PY -m pytest -q testpack/python >/dev/null && echo "PASS: pytest canaries"
+$PY testpack/lint_is_dst.py --selftest >/dev/null && echo "PASS: is_dst lint selftest"
+# JS canaries need the Temporal polyfill: use the pack's own node_modules if present,
+# else borrow the one already built under oracle_js/ via a temp symlink (offline).
+_LINK=""
+if [ ! -e testpack/js/node_modules ] && [ -d oracle_js/node_modules/@js-temporal ]; then
+  ln -s ../../oracle_js/node_modules testpack/js/node_modules && _LINK=1
+fi
+if [ -d testpack/js/node_modules/@js-temporal ]; then
+  node --test testpack/js/*.mjs >/dev/null && echo "PASS: JS Temporal canaries"
+else
+  echo "SKIP: JS canaries (run: cd testpack/js && npm install && node --test *.mjs)"
+fi
+[ -n "$_LINK" ] && rm -f testpack/js/node_modules   # remove only the symlink we made
+
+echo "== 6. sha256 corpus manifest — integrity ASSERT (code + tasks + frozen dataset) =="
 # Tamper gate: the working tree must match the committed MANIFEST.sha256, which now
 # covers the 23,040 frozen generations too. After a LEGITIMATE change, regenerate with
 # `python -m oracle.manifest` and commit the new MANIFEST.sha256.

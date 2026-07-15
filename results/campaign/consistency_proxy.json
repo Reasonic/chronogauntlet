@@ -2,68 +2,89 @@
   "both": {
     "lang": "both",
     "within_model": {
-      "value_silent_events": 1163,
-      "mean_resample_agreement_pct": 47.2,
-      "missed_plurality": 688,
-      "missed_plurality_pct": 59.2,
-      "missed_unanimous": 226,
-      "missed_unanimous_pct": 19.4
+      "value_silent_events": 1886,
+      "mean_value_producing_witnesses": 5.22,
+      "pair_oracle_miss_pct": 48.1,
+      "missed_plurality": 1158,
+      "missed_plurality_pct": 61.4,
+      "missed_true_majority_pct": 59.0,
+      "missed_unanimous_vp": 362,
+      "missed_unanimous_vp_pct": 19.2,
+      "missed_unanimous_all_pct": 7.0,
+      "missed_unanimous_ge3wit_pct": 13.4,
+      "value_silent_generations": 480,
+      "gen_plurality_miss_all_pct": 58.8,
+      "gen_plurality_miss_any_pct": 62.5
     },
     "cross_model": {
-      "wrong_value_groups": 361,
-      "shared_by_ge2_models": 138,
-      "shared_by_ge2_models_pct": 38.2,
+      "wrong_value_groups": 564,
+      "shared_by_ge2_models": 211,
+      "shared_by_ge2_models_pct": 37.4,
       "models_sharing_histogram": {
-        "1": 223,
-        "2": 104,
-        "3": 10,
-        "4": 15,
-        "5": 2,
-        "6": 7
+        "1": 353,
+        "2": 151,
+        "3": 16,
+        "4": 24,
+        "5": 6,
+        "6": 14
       }
     }
   },
   "python": {
     "lang": "python",
     "within_model": {
-      "value_silent_events": 948,
-      "mean_resample_agreement_pct": 46.2,
-      "missed_plurality": 546,
-      "missed_plurality_pct": 57.6,
-      "missed_unanimous": 161,
-      "missed_unanimous_pct": 17.0
+      "value_silent_events": 1595,
+      "mean_value_producing_witnesses": 5.3,
+      "pair_oracle_miss_pct": 47.7,
+      "missed_plurality": 970,
+      "missed_plurality_pct": 60.8,
+      "missed_true_majority_pct": 57.9,
+      "missed_unanimous_vp": 280,
+      "missed_unanimous_vp_pct": 17.6,
+      "missed_unanimous_all_pct": 7.1,
+      "missed_unanimous_ge3wit_pct": 13.2,
+      "value_silent_generations": 380,
+      "gen_plurality_miss_all_pct": 56.6,
+      "gen_plurality_miss_any_pct": 60.8
     },
     "cross_model": {
-      "wrong_value_groups": 296,
-      "shared_by_ge2_models": 106,
-      "shared_by_ge2_models_pct": 35.8,
+      "wrong_value_groups": 466,
+      "shared_by_ge2_models": 170,
+      "shared_by_ge2_models_pct": 36.5,
       "models_sharing_histogram": {
-        "1": 190,
-        "2": 79,
-        "3": 5,
-        "4": 13,
-        "5": 2,
-        "6": 7
+        "1": 296,
+        "2": 117,
+        "3": 11,
+        "4": 22,
+        "5": 6,
+        "6": 14
       }
     }
   },
   "js": {
     "lang": "js",
     "within_model": {
-      "value_silent_events": 215,
-      "mean_resample_agreement_pct": 51.4,
-      "missed_plurality": 142,
-      "missed_plurality_pct": 66.0,
-      "missed_unanimous": 65,
-      "missed_unanimous_pct": 30.2
+      "value_silent_events": 291,
+      "mean_value_producing_witnesses": 4.77,
+      "pair_oracle_miss_pct": 50.2,
+      "missed_plurality": 188,
+      "missed_plurality_pct": 64.6,
+      "missed_true_majority_pct": 64.6,
+      "missed_unanimous_vp": 82,
+      "missed_unanimous_vp_pct": 28.2,
+      "missed_unanimous_all_pct": 6.2,
+      "missed_unanimous_ge3wit_pct": 14.6,
+      "value_silent_generations": 100,
+      "gen_plurality_miss_all_pct": 67.0,
+      "gen_plurality_miss_any_pct": 69.0
     },
     "cross_model": {
-      "wrong_value_groups": 65,
-      "shared_by_ge2_models": 32,
-      "shared_by_ge2_models_pct": 49.2,
+      "wrong_value_groups": 98,
+      "shared_by_ge2_models": 41,
+      "shared_by_ge2_models_pct": 41.8,
       "models_sharing_histogram": {
-        "1": 33,
-        "2": 25,
+        "1": 57,
+        "2": 34,
         "3": 5,
         "4": 2
       }

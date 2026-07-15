@@ -17,26 +17,45 @@ For every value-silent generation the ground-truth oracle catches, we reconstruc
 generation's output at each adversarial instant from the `diverging` records (output = reference
 where it does not diverge, = the candidate value where it does), then ask:
 
-- **within-model** (the gen-vs-gen analog over the 6 samples/cell): would a majority vote emit
-  the same wrong value? would *every* sample agree on it?
+- **2-generation pair oracle** (the prior work's actual construct — generate twice, flag on
+  disagreement): the probability an independent second generation reproduces the *same* wrong value.
+- **within-model self-consistency** over the 6 samples/cell: mode/plurality vote; strict majority;
+  unanimity across value-producing samples (and across all six).
 - **cross-model**: at a given (task, language, instant), do ≥2 **distinct** models produce the
   **identical** wrong value?
 
 Unit = a `(cell, sample, instant)` value-wrong event, bare condition. A lone dissenting sample is
 counted in the denominator but is *not* a "miss" (a consistency check would catch a disagreement),
-so the miss rates credit only genuinely systematic errors — a conservative measurement.
+so the miss rates credit only genuinely systematic errors — a conservative measurement. Generation-
+level rates are reported alongside to rule out event-unit inflation.
 
-## Result (both languages; n = 1,163 value-silent events)
+**Complete records.** The campaign writer stored `diverging[:3]`, so a generation diverging at >3
+instants had an incomplete record and the "output == reference where unrecorded" reconstruction was
+false at truncated instants (missing ~38% of events). `analysis/reconstruct_diverging.py` re-scores
+every bare SILENT_WRONG candidate through the oracle core (uncapped; **0 outcome flips**) and writes
+`results/campaign/diverging_full.jsonl`, which this analysis prefers. Numbers below are on the
+complete records.
 
-| what a consistency oracle would do | miss rate |
+## Result (both languages; n = 1,886 value-wrong events over 480 generations; mean 5.2 witnesses)
+
+| what a consistency scheme would do | miss rate |
 |---|---|
-| majority vote over the 6 samples emits the **same wrong value** | **59%** |
-| **every** value-producing sample agrees on the one wrong value (blind to *any* self-consistency check) | **19%** |
-| mean probability an independent second draw reproduces the wrong value | 47% |
-| distinct wrong values produced by **≥2 independent models** (of 361 groups; some by all 6) | **38%** |
+| **2-generation pair oracle** (prior work's construct): a second draw reproduces the wrong value | **48%** |
+| mode / self-consistency vote over the 6 samples emits the same wrong value | **61%** (strict majority 59%) |
+| **every value-producing sample** agrees on the one wrong value | **19%** (all six: 7%; ≥3 witnesses: 13%) |
+| distinct wrong values produced by **≥2 independent models** (of 564 groups; 14 by all 6) | **37%** |
 
-Per language: Python — plurality-miss 58%, unanimous 17%, cross-model≥2 36% (948 events);
-JavaScript — plurality-miss 66%, unanimous 30%, cross-model≥2 49% (215 events).
+Generation-level plurality-miss: 59% at *all* of a generation's wrong instants, 62% at ≥1 — within
+3 pp of the event-level 61%, so the event unit does not inflate the headline.
+
+Per language: Python — pair 48%, mode 61%, unanimous-vp 18%, cross-model≥2 36% (1,595 events);
+JavaScript — pair 50%, mode 65%, unanimous-vp 28%, cross-model≥2 42% (291 events).
+
+**Scope.** This simulates the *gen-vs-gen* arm of the prior oracle (plus a stronger cross-model
+variant). Its **cross-library** arm (datetime-vs-pendulum) is out of reach of this re-analysis —
+our Python prompts scaffold `zoneinfo` — and could catch some single-library API misuse (e.g. the
+pytz `is_dst` fold inversion), though value misconceptions like DSW7 below plausibly survive a
+library swap.
 
 ## Concrete example
 
@@ -49,6 +68,9 @@ flags every one.
 
 ## Takeaway
 
-A consistency oracle is blind to exactly the systematic silent-wrongs this benchmark is built to
-surface; a ground-truth oracle is not. This turns the paper's central framing argument
-("consistency cannot say whether code is *correct*") from an argument into a measurement.
+Consistency schemes **systematically under-detect** the silent-wrongs this benchmark is built to
+surface (missing 48–61% depending on the scheme's strength, and blind to the 7–19% the model
+reproduces unanimously); a ground-truth oracle catches every case. This turns the paper's central
+framing argument ("consistency cannot say whether code is *correct*") from an argument into a
+measurement — while being explicit that consistency still catches roughly half, and that its
+cross-library arm is not simulated here.

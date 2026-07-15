@@ -1,0 +1,13 @@
+{
+  "name": "chronogauntlet-testpack-js",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Drop-in adversarial-instant datetime tests for JavaScript/Temporal. Run: npm install && node --test *.mjs",
+  "scripts": {
+    "test": "node --test *.mjs"
+  },
+  "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1"
+  }
+}

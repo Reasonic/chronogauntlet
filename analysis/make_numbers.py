@@ -160,16 +160,21 @@ def main():
     try:
         cp = json.load(open("results/campaign/consistency_proxy.json"))
         b, xb = cp["both"]["within_model"], cp["both"]["cross_model"]
-        A(f"- consistency-oracle head-to-head (bare, value-silent events, both langs; "
-          f"n={b['value_silent_events']}): a 6-sample majority vote emits the SAME wrong value for "
-          f"{b['missed_plurality_pct']:.0f}% (unanimous across all samples {b['missed_unanimous_pct']:.0f}%; "
-          f"mean 2nd-draw agreement {b['mean_resample_agreement_pct']:.0f}%); cross-model "
-          f"{xb['shared_by_ge2_models_pct']:.0f}% of {xb['wrong_value_groups']} distinct wrong values "
-          f"produced by ≥2 models (up to 6) [analysis/consistency_proxy.py]")
+        A(f"- consistency-oracle head-to-head (bare, value-wrong events, both langs; complete records "
+          f"via reconstruct_diverging.py; n={b['value_silent_events']} events over "
+          f"{b['value_silent_generations']} generations, mean {b['mean_value_producing_witnesses']} "
+          f"value-producing witnesses): **2-generation pair-oracle miss {b['pair_oracle_miss_pct']:.0f}%**; "
+          f"mode/plurality vote {b['missed_plurality_pct']:.0f}% (true majority {b['missed_true_majority_pct']:.0f}%); "
+          f"unanimous across value-producing samples {b['missed_unanimous_vp_pct']:.0f}% "
+          f"(all-6 {b['missed_unanimous_all_pct']:.0f}%, ≥3-witness {b['missed_unanimous_ge3wit_pct']:.0f}%); "
+          f"gen-level plurality-miss all/any {b['gen_plurality_miss_all_pct']:.0f}/{b['gen_plurality_miss_any_pct']:.0f}%; "
+          f"cross-model {xb['shared_by_ge2_models_pct']:.0f}% of {xb['wrong_value_groups']} distinct wrong "
+          f"values by ≥2 models (up to 6) [analysis/consistency_proxy.py]")
         for lg in ("python", "js"):
             w, xw = cp[lg]["within_model"], cp[lg]["cross_model"]
-            A(f"  {lg}: plurality-miss {w['missed_plurality_pct']:.0f}% | unanimous {w['missed_unanimous_pct']:.0f}% "
-              f"| cross-model≥2 {xw['shared_by_ge2_models_pct']:.0f}% | events {w['value_silent_events']}")
+            A(f"  {lg}: pair {w['pair_oracle_miss_pct']:.0f}% | mode {w['missed_plurality_pct']:.0f}% | "
+              f"unanimous-vp {w['missed_unanimous_vp_pct']:.0f}% | xmodel≥2 {xw['shared_by_ge2_models_pct']:.0f}% "
+              f"| events {w['value_silent_events']}")
     except FileNotFoundError:
         A("- (consistency_proxy.json not present — run analysis/consistency_proxy.py)")
     open("analysis/NUMBERS.md", "w").write("\n".join(L) + "\n")

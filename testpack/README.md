@@ -26,8 +26,8 @@ pytest testpack/python/test_datetime_adversarial.py
 python testpack/lint_is_dst.py src/            # exit 1 on findings (CI-friendly)
 python testpack/lint_is_dst.py --selftest
 
-# JS (Temporal) — from a project with @js-temporal/polyfill installed
-node --test testpack/js/adversarial.test.mjs
+# JS (Temporal) — installs @js-temporal/polyfill locally (package.json pins it), then runs
+(cd testpack/js && npm install && node --test *.mjs)
 ```
 
 Then bind your own helpers in the template sections — every gap/fold/leap
