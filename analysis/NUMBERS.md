@@ -98,3 +98,7 @@ _Every number in the paper MUST come from here; regenerate via analysis/make_num
 - test-strength control (mechanical mutants, n=661, PYTHON arm): mutant-slip dst+cal 36% CI[22,49] vs epoch+parsing 16% CI[0,33]
   mutant-contrast diff +20.0pp CI[-3.2,+42.2] one-sided p(<=0)=0.042 — directionally consistent, NOT separated at 95%
 - contamination split (famous vs obscure instants, 91 both-class tasks, python bare): 7.6% vs 4.0% | diff -3.7pp CI[-5.8,-2.0] (contamination predicts POSITIVE; observed negative) | sandbox re-runs 484, outcome flips 0
+- decoding stability (bare, value-silent): greedy 4.38% (84/1920) vs t=0.7 4.12% (396/9600), Δ +0.25pp [from raw via analysis/make_numbers.py]
+- consistency-oracle head-to-head (bare, value-silent events, both langs; n=1163): a 6-sample majority vote emits the SAME wrong value for 59% (unanimous across all samples 19%; mean 2nd-draw agreement 47%); cross-model 38% of 361 distinct wrong values produced by ≥2 models (up to 6) [analysis/consistency_proxy.py]
+  python: plurality-miss 58% | unanimous 17% | cross-model≥2 36% | events 948
+  js: plurality-miss 66% | unanimous 30% | cross-model≥2 49% | events 215

@@ -141,6 +141,37 @@ def main():
           f"{cont['n_rerun']}, outcome flips {cont['n_outcome_flips']}")
     except FileNotFoundError:
         A("- (test-strength / contamination JSONs not present — run their generators)")
+    # decoding stability (greedy vs t=0.7), computed from raw (bare, value-silent)
+    import glob as _glob
+    _by, _K = {}, ("model", "task", "condition", "language", "sample")
+    for _f in sorted(_glob.glob("results/campaign/raw_*.jsonl")) + sorted(_glob.glob("results/campaign/rescored_*.jsonl")):
+        for _ln in open(_f):
+            if _ln.strip():
+                _r = json.loads(_ln); _by[tuple(_r[x] for x in _K)] = _r
+    _bare = [r for r in _by.values() if r["condition"] == "bare"]
+
+    def _rate(rows):
+        n = len(rows); s = sum(1 for r in rows if r["outcome"] == "SILENT_WRONG" and r.get("silent_wrong_value"))
+        return (100 * s / n if n else 0.0), s, n
+    _g = _rate([r for r in _bare if r["sample"] == "greedy"])
+    _t = _rate([r for r in _bare if r["sample"] != "greedy"])
+    A(f"- decoding stability (bare, value-silent): greedy {_g[0]:.2f}% ({_g[1]}/{_g[2]}) vs "
+      f"t=0.7 {_t[0]:.2f}% ({_t[1]}/{_t[2]}), Δ {_g[0] - _t[0]:+.2f}pp [from raw via analysis/make_numbers.py]")
+    try:
+        cp = json.load(open("results/campaign/consistency_proxy.json"))
+        b, xb = cp["both"]["within_model"], cp["both"]["cross_model"]
+        A(f"- consistency-oracle head-to-head (bare, value-silent events, both langs; "
+          f"n={b['value_silent_events']}): a 6-sample majority vote emits the SAME wrong value for "
+          f"{b['missed_plurality_pct']:.0f}% (unanimous across all samples {b['missed_unanimous_pct']:.0f}%; "
+          f"mean 2nd-draw agreement {b['mean_resample_agreement_pct']:.0f}%); cross-model "
+          f"{xb['shared_by_ge2_models_pct']:.0f}% of {xb['wrong_value_groups']} distinct wrong values "
+          f"produced by ≥2 models (up to 6) [analysis/consistency_proxy.py]")
+        for lg in ("python", "js"):
+            w, xw = cp[lg]["within_model"], cp[lg]["cross_model"]
+            A(f"  {lg}: plurality-miss {w['missed_plurality_pct']:.0f}% | unanimous {w['missed_unanimous_pct']:.0f}% "
+              f"| cross-model≥2 {xw['shared_by_ge2_models_pct']:.0f}% | events {w['value_silent_events']}")
+    except FileNotFoundError:
+        A("- (consistency_proxy.json not present — run analysis/consistency_proxy.py)")
     open("analysis/NUMBERS.md", "w").write("\n".join(L) + "\n")
     print(f"wrote analysis/NUMBERS.md ({len(L)} lines)")
     return 0

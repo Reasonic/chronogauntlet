@@ -1,0 +1,73 @@
+{
+  "both": {
+    "lang": "both",
+    "within_model": {
+      "value_silent_events": 1163,
+      "mean_resample_agreement_pct": 47.2,
+      "missed_plurality": 688,
+      "missed_plurality_pct": 59.2,
+      "missed_unanimous": 226,
+      "missed_unanimous_pct": 19.4
+    },
+    "cross_model": {
+      "wrong_value_groups": 361,
+      "shared_by_ge2_models": 138,
+      "shared_by_ge2_models_pct": 38.2,
+      "models_sharing_histogram": {
+        "1": 223,
+        "2": 104,
+        "3": 10,
+        "4": 15,
+        "5": 2,
+        "6": 7
+      }
+    }
+  },
+  "python": {
+    "lang": "python",
+    "within_model": {
+      "value_silent_events": 948,
+      "mean_resample_agreement_pct": 46.2,
+      "missed_plurality": 546,
+      "missed_plurality_pct": 57.6,
+      "missed_unanimous": 161,
+      "missed_unanimous_pct": 17.0
+    },
+    "cross_model": {
+      "wrong_value_groups": 296,
+      "shared_by_ge2_models": 106,
+      "shared_by_ge2_models_pct": 35.8,
+      "models_sharing_histogram": {
+        "1": 190,
+        "2": 79,
+        "3": 5,
+        "4": 13,
+        "5": 2,
+        "6": 7
+      }
+    }
+  },
+  "js": {
+    "lang": "js",
+    "within_model": {
+      "value_silent_events": 215,
+      "mean_resample_agreement_pct": 51.4,
+      "missed_plurality": 142,
+      "missed_plurality_pct": 66.0,
+      "missed_unanimous": 65,
+      "missed_unanimous_pct": 30.2
+    },
+    "cross_model": {
+      "wrong_value_groups": 65,
+      "shared_by_ge2_models": 32,
+      "shared_by_ge2_models_pct": 49.2,
+      "models_sharing_histogram": {
+        "1": 33,
+        "2": 25,
+        "3": 5,
+        "4": 2
+      }
+    }
+  },
+  "_note": "Consistency-oracle head-to-head: what a gen-vs-gen consistency oracle would MISS among the value-silent generations our ground-truth oracle catches. Events are (cell, sample, adversarial-instant) value-wrong outputs (bare condition). within_model votes over the 6 samples/cell; cross_model groups identical wrong values by distinct model at a (task, language, instant)."
+}
