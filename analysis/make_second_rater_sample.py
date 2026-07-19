@@ -33,10 +33,14 @@ CELL = ("model", "task", "condition", "sample", "language")
 SEED = 20270713          # distinct from the M5 concentration sample (20260712);
 #                          SHARED by both --rater copies so kappa is on matched cases
 DEFAULT_N = 40
+# Browser-storage keys are VERSIONED and must be bumped whenever the case ORDER
+# changes: verdicts persist by case index (v1..vN), so a rater with partial work
+# saved under a previous ordering would have those answers silently reattach to
+# different cases. v2 = anti-anchoring order (see _spread_by_task).
 RATERS = {
-    1: {"slug": "first", "key": "cg_1st_rater_v1",
+    1: {"slug": "first", "key": "cg_1st_rater_v2",
         "dl": "chronogauntlet_1st_rater_verdicts.json", "who": "rater 1"},
-    2: {"slug": "second", "key": "cg_2nd_rater_v1",
+    2: {"slug": "second", "key": "cg_2nd_rater_v2",
         "dl": "chronogauntlet_2nd_rater_verdicts.json", "who": "rater 2"},
 }
 
@@ -56,6 +60,46 @@ def load():
                 r = json.loads(line)
                 by[tuple(r[x] for x in CELL)] = r
     return list(by.values())
+
+
+def _spread_by_task(picks, rng):
+    """Order the sampled cells so no two ADJACENT cases share a task.
+
+    The sample is drawn over cells, so a task with many silent-wrong cells can be
+    drawn several times (here: 40 cells over 27 distinct tasks, one task 4x). Ordering
+    those by task — the previous "tidy" display order — put up to four cases of the
+    IDENTICAL prompt back-to-back, which invites anchoring: a rater who just judged
+    this exact prompt carries the verdict forward instead of re-judging. Because both
+    rater copies share one order, that anchoring is correlated across raters and
+    inflates apparent agreement — contaminating the very statistic the worksheet
+    exists to measure.
+
+    We place the most-repeated tasks first at evenly spaced ideal positions (a task
+    drawn k times targets slots (j+0.5)*n/k), each snapped to the nearest free slot;
+    singleton tasks then fill whatever remains, which is harmless since they cannot
+    collide with themselves. This spreads repeats far apart rather than merely
+    avoiding adjacency — a greedy most-remaining-first pass also reaches zero
+    adjacency but leaves repeats as little as 2 apart, still within easy recall.
+    The SAMPLE is unchanged — only presentation order — and placement is deterministic
+    under the shared seed, so both rater copies remain matched case-for-case by index
+    for kappa.
+    """
+    buckets = collections.defaultdict(list)
+    for r in picks:
+        buckets[r["task"]].append(r)
+    for b in buckets.values():
+        rng.shuffle(b)                      # which cell of a task lands where
+    n = len(picks)
+    slots = [None] * n
+    for t in sorted(buckets, key=lambda t: (-len(buckets[t]), t)):   # most-repeated first
+        cells = buckets[t]
+        k = len(cells)
+        for j, cell in enumerate(cells):
+            ideal = min(n - 1, int((j + 0.5) * n / k))
+            pos = next(p for d in range(n) for p in (ideal - d, ideal + d)
+                       if 0 <= p < n and slots[p] is None)
+            slots[pos] = cell
+    return slots
 
 
 def main():
@@ -83,7 +127,7 @@ def main():
               and r["outcome"] == "SILENT_WRONG" and r["silent_wrong_value"]]
     rng = random.Random(SEED)
     picks = rng.sample(silent, min(n, len(silent)))
-    picks.sort(key=lambda r: (r["family"], r["task"], r["model"]))  # tidy display order
+    picks = _spread_by_task(picks, rng)   # anti-anchoring order (see _spread_by_task)
 
     fams = collections.Counter(r["family"] for r in picks)
     meta = [{"i": i, "task": r["task"], "family": r["family"], "model": r["model"],
