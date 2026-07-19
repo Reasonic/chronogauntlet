@@ -35,8 +35,11 @@ task-cluster resampling, 95% CI [+6.5, +12.2] pp) and separate into four capabil
 at 43% vs 8% for epoch/parsing errors (+35 pp, 95% cluster CI [+24, +45] — the blind spot is
 the tests' as much as the models'); silent-wrong is **correlated with but not reducible to**
 general coding ability; post-hoc replication reproduces **31 of 36 real, previously-fixed
-human bugs** as silent under the oracle; dispute rate **0/42**
-(human-adjudicated, 95% CI [0, 8.4%]). See the paper (linked above) and
+human bugs** as silent under the oracle; human-adjudicated dispute rate **0**
+across a 42-case single-rater concentration sample and a **random 40-case sample
+re-adjudicated by a second, independent (non-author) rater** (0 disputes, 0 oracle
+bugs, 100% agreement; a dispute is a property of the prompt, so the cluster-aware
+95% upper bound is 12.8% over the 27 distinct prompts). See the paper (linked above) and
 [`analysis/M4_ANALYSIS.md`](analysis/M4_ANALYSIS.md) for the full analysis.
 
 **For practitioners:** [`testpack/`](testpack/README.md) turns the slip-through

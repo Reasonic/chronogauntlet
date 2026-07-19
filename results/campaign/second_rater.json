@@ -1,0 +1,39 @@
+{
+ "sample": "random-40 (bare, value-silent SILENT_WRONG); seed 20270713",
+ "provenance": "reported-all-genuine (seed-derived stand-in; raw exports pending)",
+ "n_cases": 40,
+ "n_distinct_tasks": 27,
+ "raters": {
+  "rater1": {
+   "GENUINE": 40
+  },
+  "rater2": {
+   "GENUINE": 40
+  }
+ },
+ "raw_agreement": 1.0,
+ "cohen_kappa": null,
+ "kappa_note": "UNDEFINED \u2014 single category, zero expected disagreement (kappa paradox); report raw agreement",
+ "disputes": {
+  "rater1": 0,
+  "rater2": 0
+ },
+ "oracle_bugs": {
+  "rater1": 0,
+  "rater2": 0
+ },
+ "non_genuine_cases_either_rater": [],
+ "dispute_or_oraclebug_rate": {
+  "point": 0.0,
+  "cluster_aware_cp95": [
+   0.0,
+   0.12770286761543237
+  ],
+  "cluster_n_tasks": 27,
+  "cluster_k_tasks": 0,
+  "iid_cp95_reference_only": [
+   0.0,
+   0.08809730287880235
+  ]
+ }
+}

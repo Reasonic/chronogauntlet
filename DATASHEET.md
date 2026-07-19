@@ -51,7 +51,11 @@ prevented a complete run — disclosed, not sampled around).
 
 **Labels / targets.** The oracle verdict per generation is the label; it is *computed*
 (differential vs the pinned reference at adversarial instants), not human-annotated. The
-one human-labeled component is the dispute adjudication of a 42-case sample (0/42 disputes).
+one human-labeled component is the dispute adjudication: a 42-case single-rater
+concentration sample (0/42 disputes) plus a random 40-case sample re-adjudicated by a
+second, independent (non-author) rater (0 disputes, 0 oracle bugs, 100% agreement;
+cluster-aware 95% upper bound 12.8% over 27 distinct prompts). See
+`analysis/SECOND_RATER.md`.
 
 **Missing information / noise.** 54 generations initially failed with an OpenAI billing-quota
 error and were re-run after top-up (0 unresolved). Nonresponse (LOAD_ERROR/TIMEOUT_KILLED) is
