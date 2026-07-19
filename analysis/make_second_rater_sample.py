@@ -62,6 +62,72 @@ def load():
     return list(by.values())
 
 
+DIV_CAP = 1500      # per FIELD (args/ref/cand), not per line — see _render_divs
+
+
+def _split_div(d):
+    """Split a divergence note into (at, ref, cand). ref/cand are None for notes that
+    are not a value mismatch (e.g. 'candidate raised on ...')."""
+    for rk, ck in ((" ref_canon=", " cand_canon="), (" ref=", " cand=")):
+        if rk in d and ck in d:
+            head, rest = d.split(rk, 1)
+            ref, _, cand = rest.partition(ck)
+            head = head[len("diverged on "):] if head.startswith("diverged on ") else head
+            return head.rstrip().rstrip(":"), ref.strip(), cand.strip()
+    return d, None, None
+
+
+def _mark_diff(a, b, esc):
+    """Escape a and b, wrapping the span where they differ in <mark>.
+
+    Reference and candidate values are frequently long lists that differ in ONE
+    element (a recurring-meeting task differs only in the third instant, inside 600+
+    characters of otherwise identical text). Shaving the common prefix/suffix points
+    the rater straight at the disagreement instead of asking them to diff two long
+    strings by eye — a mis-read there becomes a wrong verdict.
+    """
+    p = 0
+    while p < len(a) and p < len(b) and a[p] == b[p]:
+        p += 1
+    s = 0
+    while s < len(a) - p and s < len(b) - p and a[len(a) - 1 - s] == b[len(b) - 1 - s]:
+        s += 1
+
+    def wrap(x):
+        mid = x[p:len(x) - s]
+        return (esc(x[:p]) + "<mark>" + esc(mid) + "</mark>" + esc(x[len(x) - s:])
+                if mid else esc(x))
+    return wrap(a), wrap(b)
+
+
+def _render_divs(records, esc):
+    """Render the 'Reference vs candidate' list.
+
+    Previously each note was emitted as one <code> truncated to 400 chars, which cut
+    7 of 94 lines mid-value — including case 1, where the candidate list was severed
+    before the element that actually differed, leaving the case unratable. Now the
+    note is split into args / reference / candidate, each capped generously and
+    independently (so a long reference can never hide the candidate), any trim is
+    marked visibly rather than silently, and the differing span is highlighted.
+    """
+    out = []
+    for d in records[:3]:
+        at, ref, cand = _split_div(d)
+        if ref is None:                      # crash note etc. — show as-is
+            trim = " …[trimmed]" if len(at) > DIV_CAP else ""
+            out.append(f'<li><code>{esc(at[:DIV_CAP])}{trim}</code></li>')
+            continue
+        trimmed = len(ref) > DIV_CAP or len(cand) > DIV_CAP
+        rh, ch = _mark_diff(ref[:DIV_CAP], cand[:DIV_CAP], esc)
+        out.append(
+            f'<li><div class="at">at <code>{esc(at[:DIV_CAP])}</code></div>'
+            f'<div class="rc"><span class="k rk">reference</span><code>{rh}</code></div>'
+            f'<div class="rc"><span class="k ck">candidate</span><code>{ch}</code></div>'
+            + ('<div class="trim">…[value trimmed for display]</div>' if trimmed else '')
+            + '</li>')
+    return "".join(out)
+
+
 def _spread_by_task(picks, rng):
     """Order the sampled cells so no two ADJACENT cases share a task.
 
@@ -139,8 +205,7 @@ def main():
     for i, r in enumerate(picks, 1):
         t = tasks[r["task"]]
         prompt = (t.prompt if r["language"] == "python" else t.js_prompt) or t.prompt
-        divs = "".join(
-            f"<li><code>{esc(d[:400])}</code></li>" for d in (r.get("diverging") or [])[:3])
+        divs = _render_divs(r.get("diverging") or [], esc)
         code = esc((r.get("code") or "").strip()[:2200])
         cards.append(f"""
 <section class="case" id="case{i}">
@@ -196,6 +261,13 @@ def main():
  ul.div{{margin:6px 0;padding:0;list-style:none}}
  ul.div li{{background:#fff;border:1px solid var(--line);border-left:3px solid var(--o);border-radius:6px;padding:7px 10px;margin:6px 0}}
  ul.div code{{font-size:12.5px;color:var(--fg);background:none;white-space:pre-wrap;word-break:break-word}}
+ ul.div .at{{font-size:11.5px;color:var(--mut);margin-bottom:5px}}
+ ul.div .at code{{font-size:11.5px;color:var(--mut)}}
+ ul.div .rc{{display:flex;gap:9px;align-items:baseline;padding:3px 0}}
+ ul.div .k{{flex:0 0 68px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 0}}
+ ul.div .rk{{color:var(--g)}} ul.div .ck{{color:var(--d)}}
+ ul.div mark{{background:#fff3c4;color:#6b4b00;font-weight:700;border-radius:3px;padding:0 2px}}
+ ul.div .trim{{font-size:11px;color:var(--mut);font-style:italic;margin-top:4px}}
  details{{margin:10px 0}} summary{{cursor:pointer;color:var(--mut);font-size:13px}}
  .verdict{{display:flex;flex-direction:column;gap:6px;margin:12px 0 8px}}
  .v{{border:1px solid var(--line);border-radius:7px;padding:8px 12px;cursor:pointer;background:#fff;display:flex;align-items:baseline;gap:8px}}
@@ -207,7 +279,8 @@ def main():
  .prog{{font-size:13px;color:var(--mut);white-space:nowrap}}
  button{{font:14px inherit;padding:9px 16px;border:0;border-radius:7px;background:#1a7f37;color:#fff;cursor:pointer}}
  button.sec{{background:#eef;color:#333}}
- @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;--card:#161b22}}header{{background:#161b22}} .rules,pre,.v,textarea.reason,footer,ul.div li{{background:#0d1117}} .prompt{{background:#1a1710}} .tag{{background:#22304a}} .case.done{{background:#122017}} .example{{background:#122017}} .example .why,.example .verdict-shown{{background:#0d1117}} .callout{{background:#0f1b2d;border-color:#1e3a5f}}
+ @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;--card:#161b22}}header{{background:#161b22}} .rules,pre,.v,textarea.reason,footer,ul.div li{{background:#0d1117}} .prompt{{background:#1a1710}} .tag{{background:#22304a}} .case.done{{background:#122017}} .example{{background:#122017}} .example .why,.example .verdict-shown{{background:#0d1117}} .callout{{background:#0f1b2d;border-color:#1e3a5f}} ul.div mark{{background:#4a3800;color:#ffd866}}
+ ul.div .rk{{color:#2ea043}} ul.div .ck{{color:#e07a1f}}
  .v.g:has(:checked){{background:#10281b;border-color:#2ea043}} .v.d:has(:checked){{background:#2a1a0d;border-color:#e07a1f}} .v.o:has(:checked){{background:#1c1436;border-color:#a371f7}}
  .v:has(:checked){{color:var(--fg)}} .v:has(:checked) small{{color:var(--mut)}}}}
 </style></head><body>
