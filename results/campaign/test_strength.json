@@ -150,5 +150,743 @@
    ],
    "p_one_sided_le_0": 0.0415
   }
+ },
+ "per_task": {
+  "B1_stored_naive_utc_before": {
+   "family": "naive_aware",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "B3_make_local_from_parts": {
+   "family": "naive_aware",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "B5_last_event_index": {
+   "family": "naive_aware",
+   "n_mutants": 6,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.3333333333333333,
+   "n_oracle_detected": 5,
+   "mutant_slip": 0.6
+  },
+  "B6_same_wall_fanout": {
+   "family": "naive_aware",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "B7_add_real_hours": {
+   "family": "naive_aware",
+   "n_mutants": 3,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.6666666666666666,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "B9_elapsed_seconds_abs": {
+   "family": "naive_aware",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "B10_intervals_overlap": {
+   "family": "naive_aware",
+   "n_mutants": 4,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "B12_first_after_cutoff": {
+   "family": "naive_aware",
+   "n_mutants": 4,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "NAG1_median_event": {
+   "family": "naive_aware",
+   "n_mutants": 6,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.8333333333333334,
+   "n_oracle_detected": 6,
+   "mutant_slip": 0.16666666666666666
+  },
+  "NAG2_kth_earliest": {
+   "family": "naive_aware",
+   "n_mutants": 3,
+   "happy_killed": 3,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.0
+  },
+  "NAG3_longest_gap_seconds": {
+   "family": "naive_aware",
+   "n_mutants": 8,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.625,
+   "n_oracle_detected": 6,
+   "mutant_slip": 0.16666666666666666
+  },
+  "NAG4_sessionize": {
+   "family": "naive_aware",
+   "n_mutants": 10,
+   "happy_killed": 6,
+   "happy_kill_rate": 0.6,
+   "n_oracle_detected": 10,
+   "mutant_slip": 0.4
+  },
+  "NAG5_max_events_in_window": {
+   "family": "naive_aware",
+   "n_mutants": 13,
+   "happy_killed": 7,
+   "happy_kill_rate": 0.5384615384615384,
+   "n_oracle_detected": 10,
+   "mutant_slip": 0.3
+  },
+  "NAG6_merge_intervals": {
+   "family": "naive_aware",
+   "n_mutants": 20,
+   "happy_killed": 11,
+   "happy_kill_rate": 0.55,
+   "n_oracle_detected": 12,
+   "mutant_slip": 0.08333333333333333
+  },
+  "NAG7_merge_streams": {
+   "family": "naive_aware",
+   "n_mutants": 12,
+   "happy_killed": 10,
+   "happy_kill_rate": 0.8333333333333334,
+   "n_oracle_detected": 12,
+   "mutant_slip": 0.16666666666666666
+  },
+  "NAG8_first_out_of_order": {
+   "family": "naive_aware",
+   "n_mutants": 7,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.7142857142857143,
+   "n_oracle_detected": 7,
+   "mutant_slip": 0.2857142857142857
+  },
+  "NAG9_top_k_recent": {
+   "family": "naive_aware",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "NAG10_busiest_local_day": {
+   "family": "naive_aware",
+   "n_mutants": 9,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.2222222222222222,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "NAG11_count_in_business_hours": {
+   "family": "naive_aware",
+   "n_mutants": 18,
+   "happy_killed": 8,
+   "happy_kill_rate": 0.4444444444444444,
+   "n_oracle_detected": 14,
+   "mutant_slip": 0.42857142857142855
+  },
+  "NAG12_time_since_last": {
+   "family": "naive_aware",
+   "n_mutants": 4,
+   "happy_killed": 3,
+   "happy_kill_rate": 0.75,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.25
+  },
+  "NAV1_start_of_local_day": {
+   "family": "naive_aware",
+   "n_mutants": 10,
+   "happy_killed": 9,
+   "happy_kill_rate": 0.9,
+   "n_oracle_detected": 9,
+   "mutant_slip": 0.0
+  },
+  "NAV2_start_of_local_week": {
+   "family": "naive_aware",
+   "n_mutants": 11,
+   "happy_killed": 10,
+   "happy_kill_rate": 0.9090909090909091,
+   "n_oracle_detected": 10,
+   "mutant_slip": 0.0
+  },
+  "NAV3_next_business_day_9am": {
+   "family": "naive_aware",
+   "n_mutants": 20,
+   "happy_killed": 13,
+   "happy_kill_rate": 0.65,
+   "n_oracle_detected": 17,
+   "mutant_slip": 0.23529411764705882
+  },
+  "NAV4_add_business_hours": {
+   "family": "naive_aware",
+   "n_mutants": 47,
+   "happy_killed": 19,
+   "happy_kill_rate": 0.40425531914893614,
+   "n_oracle_detected": 30,
+   "mutant_slip": 0.4666666666666667
+  },
+  "NAV5_round_to_local_hour": {
+   "family": "naive_aware",
+   "n_mutants": 25,
+   "happy_killed": 17,
+   "happy_kill_rate": 0.68,
+   "n_oracle_detected": 20,
+   "mutant_slip": 0.15
+  },
+  "NAV6_same_local_day": {
+   "family": "naive_aware",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "NAV8_next_local_midnight": {
+   "family": "naive_aware",
+   "n_mutants": 15,
+   "happy_killed": 13,
+   "happy_kill_rate": 0.8666666666666667,
+   "n_oracle_detected": 13,
+   "mutant_slip": 0.0
+  },
+  "NAV10_build_local_rolling": {
+   "family": "naive_aware",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "NAV12_start_of_local_quarter": {
+   "family": "naive_aware",
+   "n_mutants": 24,
+   "happy_killed": 20,
+   "happy_kill_rate": 0.8333333333333334,
+   "n_oracle_detected": 23,
+   "mutant_slip": 0.13043478260869565
+  },
+  "A1_attach_wall_zone": {
+   "family": "naive_aware",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "A3_combine_in_zone": {
+   "family": "naive_aware",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "A4_compare_moments": {
+   "family": "naive_aware",
+   "n_mutants": 10,
+   "happy_killed": 7,
+   "happy_kill_rate": 0.7,
+   "n_oracle_detected": 10,
+   "mutant_slip": 0.3
+  },
+  "A5_wall_preserving_add_days": {
+   "family": "naive_aware",
+   "n_mutants": 3,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.6666666666666666,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "B5_arrival_local_zone": {
+   "family": "tz_conversion",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "B7_zone_offset_minutes": {
+   "family": "tz_conversion",
+   "n_mutants": 3,
+   "happy_killed": 3,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.0
+  },
+  "B8_elapsed_seconds_utc": {
+   "family": "tz_conversion",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "B11_daily_counts_local": {
+   "family": "tz_conversion",
+   "n_mutants": 5,
+   "happy_killed": 5,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 5,
+   "mutant_slip": 0.0
+  },
+  "B12_local_to_utc_fractional": {
+   "family": "tz_conversion",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "TZW1_business_hours_overlap": {
+   "family": "tz_conversion",
+   "n_mutants": 10,
+   "happy_killed": 9,
+   "happy_kill_rate": 0.9,
+   "n_oracle_detected": 9,
+   "mutant_slip": 0.0
+  },
+  "TZW2_meeting_slot_three_zones": {
+   "family": "tz_conversion",
+   "n_mutants": 8,
+   "happy_killed": 4,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 5,
+   "mutant_slip": 0.2
+  },
+  "TZW3_recurring_daily_to_utc": {
+   "family": "tz_conversion",
+   "n_mutants": 3,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.6666666666666666,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "TZW5_offset_label_historical": {
+   "family": "tz_conversion",
+   "n_mutants": 13,
+   "happy_killed": 9,
+   "happy_kill_rate": 0.6923076923076923,
+   "n_oracle_detected": 11,
+   "mutant_slip": 0.18181818181818182
+  },
+  "TZW6_local_date_shift": {
+   "family": "tz_conversion",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "TZW7_offset_matches_claim": {
+   "family": "tz_conversion",
+   "n_mutants": 4,
+   "happy_killed": 4,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.0
+  },
+  "TZW10_offset_minutes_historical": {
+   "family": "tz_conversion",
+   "n_mutants": 3,
+   "happy_killed": 3,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.0
+  },
+  "TZW11_recover_utc_from_fixed": {
+   "family": "tz_conversion",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "TZW12_zone_gap_hours": {
+   "family": "tz_conversion",
+   "n_mutants": 2,
+   "happy_killed": 2,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.0
+  },
+  "B2_meeting_in_zones": {
+   "family": "tz_conversion",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "B3_local_to_utc": {
+   "family": "tz_conversion",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.5
+  },
+  "B4_same_instant": {
+   "family": "tz_conversion",
+   "n_mutants": 3,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.6666666666666666,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.0
+  },
+  "D1_offset_in_effect": {
+   "family": "dst",
+   "n_mutants": 5,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.2,
+   "n_oracle_detected": 5,
+   "mutant_slip": 0.8
+  },
+  "D2_weekly_meeting_series": {
+   "family": "dst",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "D3_classify_wall_time": {
+   "family": "dst",
+   "n_mutants": 8,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.625,
+   "n_oracle_detected": 7,
+   "mutant_slip": 0.2857142857142857
+  },
+  "D4_cron_next_fire": {
+   "family": "dst",
+   "n_mutants": 9,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.5555555555555556,
+   "n_oracle_detected": 7,
+   "mutant_slip": 0.2857142857142857
+  },
+  "D5_add_absolute_hours": {
+   "family": "dst",
+   "n_mutants": 3,
+   "happy_killed": 2,
+   "happy_kill_rate": 0.6666666666666666,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.3333333333333333
+  },
+  "D6_hours_in_local_day": {
+   "family": "dst",
+   "n_mutants": 9,
+   "happy_killed": 7,
+   "happy_kill_rate": 0.7777777777777778,
+   "n_oracle_detected": 7,
+   "mutant_slip": 0.0
+  },
+  "DSW1_meter_billing_across_dst": {
+   "family": "dst",
+   "n_mutants": 5,
+   "happy_killed": 4,
+   "happy_kill_rate": 0.8,
+   "n_oracle_detected": 5,
+   "mutant_slip": 0.2
+  },
+  "DSW2_distinct_local_days_across_dst": {
+   "family": "dst",
+   "n_mutants": 4,
+   "happy_killed": 4,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.0
+  },
+  "DSW3_alarm_fire_instants": {
+   "family": "dst",
+   "n_mutants": 10,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 10,
+   "mutant_slip": 0.5
+  },
+  "DSW4_overtime_across_25h_day": {
+   "family": "dst",
+   "n_mutants": 3,
+   "happy_killed": 3,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.0
+  },
+  "DSW5_sla_deadline_wall_hours": {
+   "family": "dst",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "DSW6_next_k_daily_fires": {
+   "family": "dst",
+   "n_mutants": 8,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.625,
+   "n_oracle_detected": 6,
+   "mutant_slip": 0.16666666666666666
+  },
+  "DSW7_wall_duration_to_real_seconds": {
+   "family": "dst",
+   "n_mutants": 2,
+   "happy_killed": 2,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.0
+  },
+  "DSW8_transition_shift_minutes": {
+   "family": "dst",
+   "n_mutants": 11,
+   "happy_killed": 3,
+   "happy_kill_rate": 0.2727272727272727,
+   "n_oracle_detected": 8,
+   "mutant_slip": 0.625
+  },
+  "DSW9_historical_dst_rule_offset": {
+   "family": "dst",
+   "n_mutants": 2,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "C1_elapsed_across_dst": {
+   "family": "dst",
+   "n_mutants": 5,
+   "happy_killed": 3,
+   "happy_kill_rate": 0.6,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.25
+  },
+  "C2_resolve_gap_forward": {
+   "family": "dst",
+   "n_mutants": 10,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.1,
+   "n_oracle_detected": 9,
+   "mutant_slip": 0.8888888888888888
+  },
+  "C3_disambiguate_fold": {
+   "family": "dst",
+   "n_mutants": 5,
+   "happy_killed": 3,
+   "happy_kill_rate": 0.6,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.6666666666666666
+  },
+  "D4_to_epoch_micros": {
+   "family": "epoch",
+   "n_mutants": 10,
+   "happy_killed": 10,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 10,
+   "mutant_slip": 0.0
+  },
+  "D5_token_expiry_epoch": {
+   "family": "epoch",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "D7_nanos_to_epoch_seconds_floor": {
+   "family": "epoch",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "D8_epoch_millis_to_local": {
+   "family": "epoch",
+   "n_mutants": 7,
+   "happy_killed": 7,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 7,
+   "mutant_slip": 0.0
+  },
+  "EPW1_js_millis_matches_aware": {
+   "family": "epoch",
+   "n_mutants": 4,
+   "happy_killed": 4,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.0
+  },
+  "EPW2_age_whole_days_epoch": {
+   "family": "epoch",
+   "n_mutants": 2,
+   "happy_killed": 2,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.0
+  },
+  "EPW4_normalize_unit_to_seconds": {
+   "family": "epoch",
+   "n_mutants": 16,
+   "happy_killed": 5,
+   "happy_kill_rate": 0.3125,
+   "n_oracle_detected": 13,
+   "mutant_slip": 0.6153846153846154
+  },
+  "EPW5_iso_duration_seconds": {
+   "family": "epoch",
+   "n_mutants": 1,
+   "happy_killed": 1,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 1,
+   "mutant_slip": 0.0
+  },
+  "D1_to_epoch_millis": {
+   "family": "epoch",
+   "n_mutants": 3,
+   "happy_killed": 3,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 3,
+   "mutant_slip": 0.0
+  },
+  "E4_shortyear_pivot": {
+   "family": "parsing",
+   "n_mutants": 10,
+   "happy_killed": 7,
+   "happy_kill_rate": 0.7,
+   "n_oracle_detected": 5,
+   "mutant_slip": 0.2
+  },
+  "E7_iso_normalize_offset": {
+   "family": "parsing",
+   "n_mutants": 3,
+   "happy_killed": 3,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 0,
+   "mutant_slip": null
+  },
+  "PRW2_zone_abbrev_policy": {
+   "family": "parsing",
+   "n_mutants": 2,
+   "happy_killed": 2,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.0
+  },
+  "PRW4_duration_hms_truncate": {
+   "family": "parsing",
+   "n_mutants": 12,
+   "happy_killed": 7,
+   "happy_kill_rate": 0.5833333333333334,
+   "n_oracle_detected": 9,
+   "mutant_slip": 0.2222222222222222
+  },
+  "PRW5_iso_week_date": {
+   "family": "parsing",
+   "n_mutants": 12,
+   "happy_killed": 11,
+   "happy_kill_rate": 0.9166666666666666,
+   "n_oracle_detected": 11,
+   "mutant_slip": 0.0
+  },
+  "F3_age_full_years_feb29": {
+   "family": "calendar",
+   "n_mutants": 17,
+   "happy_killed": 4,
+   "happy_kill_rate": 0.23529411764705882,
+   "n_oracle_detected": 17,
+   "mutant_slip": 0.7647058823529411
+  },
+  "F4_months_before_clamp": {
+   "family": "calendar",
+   "n_mutants": 15,
+   "happy_killed": 15,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 15,
+   "mutant_slip": 0.0
+  },
+  "F5_days_in_month_gregorian": {
+   "family": "calendar",
+   "n_mutants": 2,
+   "happy_killed": 2,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 2,
+   "mutant_slip": 0.0
+  },
+  "F6_nth_weekday_of_month": {
+   "family": "calendar",
+   "n_mutants": 20,
+   "happy_killed": 19,
+   "happy_kill_rate": 0.95,
+   "n_oracle_detected": 20,
+   "mutant_slip": 0.05
+  },
+  "CLW1_business_days_between": {
+   "family": "calendar",
+   "n_mutants": 8,
+   "happy_killed": 6,
+   "happy_kill_rate": 0.75,
+   "n_oracle_detected": 8,
+   "mutant_slip": 0.25
+  },
+  "CLW2_add_business_days": {
+   "family": "calendar",
+   "n_mutants": 8,
+   "happy_killed": 3,
+   "happy_kill_rate": 0.375,
+   "n_oracle_detected": 7,
+   "mutant_slip": 0.5714285714285714
+  },
+  "CLW3_iso_year_week": {
+   "family": "calendar",
+   "n_mutants": 4,
+   "happy_killed": 4,
+   "happy_kill_rate": 1.0,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.0
+  },
+  "CLW4_last_business_day_of_month": {
+   "family": "calendar",
+   "n_mutants": 8,
+   "happy_killed": 4,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 8,
+   "mutant_slip": 0.5
+  },
+  "F1_add_years_clamp": {
+   "family": "calendar",
+   "n_mutants": 4,
+   "happy_killed": 1,
+   "happy_kill_rate": 0.25,
+   "n_oracle_detected": 4,
+   "mutant_slip": 0.75
+  },
+  "F2_add_one_month_clamp": {
+   "family": "calendar",
+   "n_mutants": 18,
+   "happy_killed": 9,
+   "happy_kill_rate": 0.5,
+   "n_oracle_detected": 18,
+   "mutant_slip": 0.5
+  }
  }
 }

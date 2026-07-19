@@ -32,6 +32,8 @@ _Round-3 must-fix #2. Mechanical AST mutants of every reference (operator swaps,
 4. **Two facts that cut AGAINST an authored asymmetry:** per-family happy-input counts do not favor it, and the only three deliberately weaker happy comparators in the corpus are in epoch/parsing tasks — a bias AGAINST the headline contrast, not for it.
 5. **Pin-mutant control**: pinned-clause violations are near-invisible to happy suites in every family EXCEPT epoch (14/31 happy-caught, because epoch-base errors shift every output) — consistent with structure; the oracle catches 216/216 (matches the coverage gate).
 
+
+
 ---
 
 ## JS arm (round-7 / peer-review R2 — extend the control to JavaScript)

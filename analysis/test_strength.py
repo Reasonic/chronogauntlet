@@ -269,6 +269,21 @@ def main():
             d["happy_killed"] += (not res.happy_pass)
             d["oracle_detected"] += (not res.oracle_pass)
 
+    # ---- per-task happy-kill + slip (for the permeability-matched sensitivity,
+    #      BLIND_REVIEW_02 A-Q3: does the model-slip asymmetry survive conditioning
+    #      on per-task authored-suite permeability?) ----------------------------- #
+    pt = collections.defaultdict(lambda: {"family": None, "n": 0, "hk": 0, "od": 0, "slip": 0})
+    for r in per_task:
+        d = pt[r["task"]]
+        d["family"] = r["family"]; d["n"] += 1; d["hk"] += r["happy_killed"]
+        if r["oracle_detected"]:
+            d["od"] += 1; d["slip"] += (not r["happy_killed"])
+    out["per_task"] = {
+        k: {"family": v["family"], "n_mutants": v["n"], "happy_killed": v["hk"],
+            "happy_kill_rate": v["hk"] / v["n"], "n_oracle_detected": v["od"],
+            "mutant_slip": (v["slip"] / v["od"] if v["od"] else None)}
+        for k, v in pt.items()}
+
     json.dump(out, open("results/campaign/test_strength.json", "w"), indent=1)
 
     # ---- report --------------------------------------------------------------- #
