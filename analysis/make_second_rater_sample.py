@@ -43,6 +43,15 @@ RATERS = {
     2: {"slug": "second", "key": "cg_2nd_rater_v2",
         "dl": "chronogauntlet_2nd_rater_verdicts.json", "who": "rater 2"},
 }
+# --census (BLIND_REVIEW_02 gate): a fully external, adequately powered round. Instead
+# of sampling cells it takes EVERY distinct flagged prompt (one representative cell each,
+# gpt-5.5's own cells for its two prompts so the 0.1% endpoint is adjudicated), which is
+# a census, not a sample -- it clears the pre-registered <10% dispute gate at zero
+# disputes (0/63 -> CP upper 5.7%) and removes any "was the sample adequate/random"
+# question. Distinct seed + storage key so it never collides with the v2 sample.
+SEED_EXT = 20270719
+EXTERNAL = {"slug": "external", "key": "cg_ext_rater_v3",
+            "dl": "chronogauntlet_external_rater_verdicts.json", "who": "external rater"}
 
 
 def load():
@@ -128,6 +137,24 @@ def _render_divs(records, esc):
     return "".join(out)
 
 
+def sample_census(silent, rng):
+    """Every distinct flagged prompt, one representative cell each. gpt-5.5's own cells
+    are forced as the representatives for its two prompts (the 0.1% best-model endpoint),
+    so those get human eyes; other prompts get a seeded-random representative. All cases
+    are distinct prompts, so a plain shuffle is the right order (no repeated-prompt
+    anchoring is possible)."""
+    by_task = collections.defaultdict(list)
+    for r in silent:
+        by_task[r["task"]].append(r)
+    picks = []
+    for task in sorted(by_task):
+        cells = by_task[task]
+        gpt = [c for c in cells if "gpt" in c["model"]]
+        picks.append(rng.choice(gpt) if gpt else rng.choice(cells))
+    rng.shuffle(picks)
+    return picks
+
+
 def _spread_by_task(picks, rng):
     """Order the sampled cells so no two ADJACENT cases share a task.
 
@@ -169,31 +196,39 @@ def _spread_by_task(picks, rng):
 
 
 def main():
-    # parse an optional --rater 1|2 (default 2) out of the positional args
-    argv, rater, rest, i = sys.argv[1:], 2, [], 0
+    # parse --rater 1|2 (default 2) and --census out of the positional args
+    argv, rater, census, rest, i = sys.argv[1:], 2, False, [], 0
     while i < len(argv):
         a = argv[i]
-        if a.startswith("--rater="):
+        if a == "--census":
+            census = True; i += 1
+        elif a.startswith("--rater="):
             rater = int(a.split("=", 1)[1]); i += 1
         elif a == "--rater":
             rater = int(argv[i + 1]); i += 2
         else:
             rest.append(a); i += 1
-    if rater not in RATERS:
+    if not census and rater not in RATERS:
         raise SystemExit("--rater must be 1 or 2")
-    cfg = RATERS[rater]
-    n = int(rest[0]) if rest else DEFAULT_N
-    out_path = rest[1] if len(rest) > 1 else f"analysis/{cfg['slug'].upper()}_RATER.html"
-    key_name, dl_name = f"{cfg['key']}_{SEED}", cfg["dl"]
+    cfg = EXTERNAL if census else RATERS[rater]
+    seed = SEED_EXT if census else SEED
+    # census has no positional N, so its out-path is rest[0]; otherwise rest[0]=N, rest[1]=out
+    default_out = f"analysis/{cfg['slug'].upper()}_RATER.html"
+    out_path = (rest[0] if rest else default_out) if census else \
+               (rest[1] if len(rest) > 1 else default_out)
+    key_name, dl_name = f"{cfg['key']}_{seed}", cfg["dl"]
     sample_label, who = cfg["slug"] + "_rater", cfg["who"]
     tasks = {t.id: t for t in load_tasks("tasks/pilot")}
     R = load()
     # bare value-silent cells only (the headline construct the oracle flags)
     silent = [r for r in R if r["condition"] == "bare"
               and r["outcome"] == "SILENT_WRONG" and r["silent_wrong_value"]]
-    rng = random.Random(SEED)
-    picks = rng.sample(silent, min(n, len(silent)))
-    picks = _spread_by_task(picks, rng)   # anti-anchoring order (see _spread_by_task)
+    rng = random.Random(seed)
+    if census:
+        picks = sample_census(silent, rng)
+    else:
+        n = int(rest[0]) if rest else DEFAULT_N
+        picks = _spread_by_task(rng.sample(silent, min(n, len(silent))), rng)
 
     fams = collections.Counter(r["family"] for r in picks)
     meta = [{"i": i, "task": r["task"], "family": r["family"], "model": r["model"],
@@ -230,6 +265,19 @@ def main():
   <textarea name="r{i}" class="reason" placeholder="reason (optional; required for DISPUTE / ORACLE-BUG)"></textarea>
 </section>""")
 
+    n_cases = len(picks)
+    if census:
+        cases_label = f"census of {n_cases} flagged prompts"
+        sample_sentence = (f"The {n_cases} cases below are <b>every distinct flagged prompt</b> in "
+                           f"the study &mdash; a full census, not a sample.")
+        reviewer_sentence = ("You are the <b>independent external adjudicator</b>; your judgments "
+                             "are the check on whether these flags are real.")
+    else:
+        cases_label = f"{n_cases} randomly-sampled cases"
+        sample_sentence = f"The {n_cases} cases below are a random sample of those flags."
+        reviewer_sentence = (f"A second reviewer rates the same {n_cases} cases separately, and "
+                             f"comparing the two sets of judgments tells us how trustworthy the flags are.")
+
     doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ChronoGauntlet — 2nd-rater adjudication</title>
@@ -244,6 +292,9 @@ def main():
  .intro h2{{font-size:16px;margin:20px 0 6px}} .intro h2:first-of-type{{margin-top:2px}}
  .intro p{{margin:6px 0}}
  .callout{{background:#eef6ff;border:1px solid #cfe2ff;border-left:4px solid #1a66c9;border-radius:8px;padding:12px 14px;margin:14px 0;font-size:14.5px}}
+ .raterinfo{{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:14px 0;font-size:13.5px}}
+ .raterinfo label{{display:block;margin:8px 0 0;color:var(--mut)}}
+ .raterinfo input{{display:block;width:100%;margin-top:3px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font:13.5px inherit;background:var(--bg);color:var(--fg)}}
  .gloss{{margin:8px 0;padding:0;list-style:none}} .gloss li{{padding:6px 0;border-bottom:1px solid var(--line)}} .gloss li:last-child{{border-bottom:0}}
  .steps{{margin:8px 0;padding-left:22px}} .steps li{{margin:5px 0}}
  .example{{border:1px solid var(--g);border-radius:10px;padding:16px;margin:16px 0;background:#f4faf5}}
@@ -285,7 +336,7 @@ def main():
  .v:has(:checked){{color:var(--fg)}} .v:has(:checked) small{{color:var(--mut)}}}}
 </style></head><body>
 <header><div class="wrap"><h1>ChronoGauntlet — independent dispute adjudication</h1>
-<div class="sub">{len(picks)} randomly-sampled cases · seed {SEED} · {who} · your judgment is recorded locally in this browser</div></div></header>
+<div class="sub">{cases_label} · seed {seed} · {who} · your judgment is recorded locally in this browser</div></div></header>
 <div class="intro">
  <h2>What this is</h2>
  <p>You're helping check how reliable <b>AI-written date &amp; time code</b> is. Modern AI coding
@@ -297,18 +348,22 @@ def main():
  programming tasks, then compared each AI's output against a <b>reference answer</b> computed
  independently by a trusted, version-pinned time-zone library. Whenever the AI's code passed its own
  basic tests <em>but</em> disagreed with the reference at a hard moment, we flagged it as a possible
- silent bug. The 40 cases below are a random sample of those flags.</p>
+ silent bug. {sample_sentence}</p>
 
  <h2>Why we need you</h2>
  <p>A computer raised these flags &mdash; but a disagreement isn't automatically a bug. Two things could
  make a flag unfair: the task's wording might be genuinely <b>ambiguous</b> (so the AI's answer is a
  reasonable different reading), or our <b>reference answer</b> could itself be wrong. So we ask an
- independent person &mdash; <b>you</b> &mdash; to read each flagged case and judge it. A second reviewer rates
- the same 40 cases separately, and comparing the two sets of judgments tells us how trustworthy the
- flags are. <b>You don't need any special background</b> &mdash; just read carefully and judge against what
+ independent person &mdash; <b>you</b> &mdash; to read each flagged case and judge it. {reviewer_sentence}
+ <b>You don't need any special background</b> &mdash; just read carefully and judge against what
  each task actually asks for.</p>
 
- <div class="callout"><b>Your task, in one line:</b> for each of 40 cases, decide whether the AI's
+ <div class="raterinfo"><b>Before you start &mdash; for our records</b> (so the paper can state who
+ adjudicated, without naming you):
+ <label>Your role / expertise <input id="raterRole" type="text" placeholder="e.g., software engineer; PhD student in SE"></label>
+ <label>Relationship to this project <input id="raterRel" type="text" placeholder="e.g., none; colleague of an author; unpaid volunteer"></label></div>
+
+ <div class="callout"><b>Your task, in one line:</b> for each of {n_cases} cases, decide whether the AI's
  answer is a <b>real bug</b> (it broke a rule the task spells out), a <b>defensible reading</b> of an
  ambiguous task, or a case where <b>our reference itself looks wrong</b>.</div>
 
@@ -331,7 +386,7 @@ def main():
  </ol>
  <p style="color:var(--mut);font-size:13px">There's no target number of bugs versus disputes &mdash; judge
  each case on its own, and there's no time pressure. Your answers <b>save automatically</b> in this
- browser; when you've rated all 40, click <b>Export &amp; download</b> at the bottom and send the file
+ browser; when you've rated all {n_cases}, click <b>Export &amp; download</b> at the bottom and send the file
  back. A fully worked example follows the three verdict definitions.</p>
  <div class="rules">
   <div><b>GENUINE</b> — the prompt explicitly pins the behavior and the code violates it (a real bug).</div>
@@ -377,28 +432,37 @@ const N = {len(picks)}, KEY = "{key_name}";
 const cg = {{
   save(){{const s={{}}; META.forEach(m=>{{const v=document.querySelector(`input[name=v${{m.i}}]:checked`);
     const r=document.querySelector(`textarea[name=r${{m.i}}]`).value;
-    if(v||r) s[m.i]={{verdict:v?v.value:null,reason:r}};}}); localStorage.setItem(KEY,JSON.stringify(s)); cg.prog();}},
+    if(v||r) s[m.i]={{verdict:v?v.value:null,reason:r}};}});
+    const rr=document.getElementById("raterRole"),rl=document.getElementById("raterRel");
+    s.__rater={{role:rr?rr.value:"",rel:rl?rl.value:""}};
+    localStorage.setItem(KEY,JSON.stringify(s)); cg.prog();}},
   load(){{const s=JSON.parse(localStorage.getItem(KEY)||"{{}}"); Object.entries(s).forEach(([i,o])=>{{
+    if(i==="__rater") return;
     if(o.verdict){{const el=document.querySelector(`input[name=v${{i}}][value="${{o.verdict}}"]`); if(el)el.checked=true;}}
-    if(o.reason){{const t=document.querySelector(`textarea[name=r${{i}}]`); if(t)t.value=o.reason;}}}}); cg.prog();}},
+    if(o.reason){{const t=document.querySelector(`textarea[name=r${{i}}]`); if(t)t.value=o.reason;}}}});
+    if(s.__rater){{const rr=document.getElementById("raterRole"),rl=document.getElementById("raterRel");
+      if(rr)rr.value=s.__rater.role||""; if(rl)rl.value=s.__rater.rel||"";}} cg.prog();}},
   prog(){{let done=0; META.forEach(m=>{{const v=document.querySelector(`input[name=v${{m.i}}]:checked`);
     const c=document.getElementById("case"+m.i); if(v){{done++;c.classList.add("done");}}else c.classList.remove("done");}});
     document.getElementById("prog").textContent=done+" / "+N+" rated";
     document.getElementById("fill").style.width=(100*done/N)+"%";}},
   collect(){{return META.map(m=>{{const v=document.querySelector(`input[name=v${{m.i}}]:checked`);
     return {{...m, verdict:v?v.value:null, reason:document.querySelector(`textarea[name=r${{m.i}}]`).value||""}};}});}},
-  payload(){{return JSON.stringify({{sample:"{sample_label}",seed:{SEED},n:N,verdicts:cg.collect()}},null,1);}},
+  payload(){{const rr=document.getElementById("raterRole"),rl=document.getElementById("raterRel");
+    return JSON.stringify({{sample:"{sample_label}",seed:{seed},n:N,
+      rater_role:rr?rr.value:"",rater_relationship:rl?rl.value:"",verdicts:cg.collect()}},null,1);}},
   export(){{const b=new Blob([cg.payload()],{{type:"application/json"}}); const a=document.createElement("a");
     a.href=URL.createObjectURL(b); a.download="{dl_name}"; a.click();}},
   copy(){{navigator.clipboard.writeText(cg.payload()).then(()=>alert("Verdicts JSON copied to clipboard."));}},
 }};
-document.addEventListener("change",cg.save); document.addEventListener("input",e=>{{if(e.target.matches("textarea"))cg.save();}});
+document.addEventListener("change",cg.save); document.addEventListener("input",e=>{{if(e.target.matches("textarea, .raterinfo input"))cg.save();}});
 cg.load();
 </script></body></html>"""
 
     with open(out_path, "w") as f:
         f.write(doc)
-    print(f"wrote {out_path} — {who}: {len(picks)} random cases (seed {SEED}); families {dict(fams)}")
+    kind = "census" if census else "random"
+    print(f"wrote {out_path} — {who}: {len(picks)} {kind} cases (seed {seed}); families {dict(fams)}")
     return 0
 
 
