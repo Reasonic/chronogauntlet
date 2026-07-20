@@ -44,11 +44,13 @@ RATERS = {
         "dl": "chronogauntlet_2nd_rater_verdicts.json", "who": "rater 2"},
 }
 # --census (BLIND_REVIEW_02 gate): a fully external, adequately powered round. Instead
-# of sampling cells it takes EVERY distinct flagged prompt (one representative cell each,
-# gpt-5.5's own cells for its two prompts so the 0.1% endpoint is adjudicated), which is
+# of sampling cells it takes EVERY distinct flagged TASK (one representative cell each,
+# gpt-5.5's own cells for its two tasks so the 0.1% endpoint is adjudicated), which is
 # a census, not a sample -- it clears the pre-registered <10% dispute gate at zero
 # disputes (0/63 -> CP upper 5.7%) and removes any "was the sample adequate/random"
-# question. Distinct seed + storage key so it never collides with the v2 sample.
+# question. Task is the exchangeable unit: a dispute is a property of the pinned clause,
+# contract-matched across languages, so the 79 (task,language) prompts collapse to 63
+# tasks. Distinct seed + storage key so it never collides with the v2 sample.
 SEED_EXT = 20270719
 EXTERNAL = {"slug": "external", "key": "cg_ext_rater_v3",
             "dl": "chronogauntlet_external_rater_verdicts.json", "who": "external rater"}
@@ -138,8 +140,8 @@ def _render_divs(records, esc):
 
 
 def sample_census(silent, rng):
-    """Every distinct flagged prompt, one representative cell each. gpt-5.5's own cells
-    are forced as the representatives for its two prompts (the 0.1% best-model endpoint),
+    """Every distinct flagged TASK, one representative cell each. gpt-5.5's own cells
+    are forced as the representatives for its two tasks (the 0.1% best-model endpoint),
     so those get human eyes; other prompts get a seeded-random representative. All cases
     are distinct prompts, so a plain shuffle is the right order (no repeated-prompt
     anchoring is possible)."""
@@ -267,9 +269,10 @@ def main():
 
     n_cases = len(picks)
     if census:
-        cases_label = f"census of {n_cases} flagged prompts"
-        sample_sentence = (f"The {n_cases} cases below are <b>every distinct flagged prompt</b> in "
-                           f"the study &mdash; a full census, not a sample.")
+        cases_label = f"census of {n_cases} flagged tasks"
+        sample_sentence = (f"The {n_cases} cases below are <b>every distinct task we flagged</b>, "
+                           f"one representative case each &mdash; a full census of the flagged tasks, "
+                           f"not a sample.")
         reviewer_sentence = ("You are the <b>independent external adjudicator</b>; your judgments "
                              "are the check on whether these flags are real.")
     else:
