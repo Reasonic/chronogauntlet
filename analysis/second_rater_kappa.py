@@ -39,10 +39,60 @@ import random
 import sys
 
 sys.path.insert(0, ".")
-from analysis.make_second_rater_sample import load, SEED, _spread_by_task  # noqa: E402
+from analysis.make_second_rater_sample import (  # noqa: E402
+    load, SEED, SEED_EXT, _spread_by_task, sample_census)
 
 VERDICTS = ("GENUINE", "DISPUTE", "ORACLE-BUG")
 NON_GENUINE = ("DISPUTE", "ORACLE-BUG")
+
+
+def _silent_pool():
+    R = load()
+    return [r for r in R if r["condition"] == "bare"
+            and r["outcome"] == "SILENT_WRONG" and r["silent_wrong_value"]]
+
+
+def run_census(path, out):
+    """Single external rater over the census of all distinct value-silent prompts
+    (make_second_rater_sample.py --census). No kappa (single rater); the gate is the
+    dispute+oracle-bug rate with a cluster-aware CP bound, and each census case IS a
+    distinct prompt, so cases == clusters."""
+    picks = sample_census(_silent_pool(), random.Random(SEED_EXT))
+    d, v = _load_verdicts(path)
+    if d.get("seed") != SEED_EXT:
+        print(f"INTEGRITY FAIL: seed {d.get('seed')} != {SEED_EXT}"); return 1
+    canon = {i: (r["task"], r["language"], r["model"]) for i, r in enumerate(picks, 1)}
+    got = {int(x["i"]): (x["task"], x["language"], x["model"]) for x in d["verdicts"]}
+    if got != canon:
+        mism = [i for i in canon if got.get(i) != canon[i]]
+        print(f"INTEGRITY FAIL: {len(mism)} case(s) do not match the census"
+              f"{f' (first: case {mism[0]})' if mism else ''}"); return 1
+    verdicts = [v[i]["verdict"] for i in sorted(v)]
+    bad = [x for x in verdicts if x not in VERDICTS]
+    if bad:
+        print(f"INTEGRITY FAIL: unrated/invalid verdict(s): {set(bad)}"); return 1
+    n = len(picks)
+    disp = sum(x == "DISPUTE" for x in verdicts)
+    ob = sum(x == "ORACLE-BUG" for x in verdicts)
+    ng = disp + ob
+    up = _cp_upper(ng, n)
+    res = {
+        "mode": "census", "seed": SEED_EXT, "n_prompts": n,
+        "rater_role": d.get("rater_role", ""), "rater_relationship": d.get("rater_relationship", ""),
+        "counts": dict(collections.Counter(verdicts)),
+        "disputes": disp, "oracle_bugs": ob,
+        "dispute_or_oraclebug_rate": {
+            "point": ng / n, "cluster_aware_cp95": [0.0, up], "clears_10pct_gate": up < 0.10},
+        "non_genuine_prompts": [picks[i]["task"] for i in range(n) if verdicts[i] in NON_GENUINE],
+    }
+    json.dump(res, open(out, "w"), indent=1)
+    p = lambda x: f"{100*x:.1f}%"  # noqa: E731
+    print(f"census: {n} distinct prompts | {res['counts']}")
+    print(f"rater role={res['rater_role']!r} relationship={res['rater_relationship']!r}")
+    print(f"dispute+oracle-bug {ng}/{n} = {p(ng/n)} | cluster-aware CP95 upper {p(up)} | "
+          f"clears 10% gate: {res['dispute_or_oraclebug_rate']['clears_10pct_gate']}")
+    print(f"wrote {out}")
+    return 0
 
 
 def canonical_sample(n=40):
@@ -56,14 +106,64 @@ def canonical_sample(n=40):
     return picks
 
 
+def _betacf(a, b, x):
+    """Continued fraction for the incomplete beta (Numerical Recipes, Lentz)."""
+    MAXIT, EPS, FPMIN = 300, 3e-16, 1e-300
+    qab, qap, qam = a + b, a + 1.0, a - 1.0
+    c, d = 1.0, 1.0 - qab * x / qap
+    if abs(d) < FPMIN:
+        d = FPMIN
+    d = 1.0 / d
+    h = d
+    for m in range(1, MAXIT + 1):
+        m2 = 2 * m
+        aa = m * (b - m) * x / ((qam + m2) * (a + m2))
+        d = 1.0 + aa * d; d = FPMIN if abs(d) < FPMIN else d
+        c = 1.0 + aa / c; c = FPMIN if abs(c) < FPMIN else c
+        d = 1.0 / d; h *= d * c
+        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
+        d = 1.0 + aa * d; d = FPMIN if abs(d) < FPMIN else d
+        c = 1.0 + aa / c; c = FPMIN if abs(c) < FPMIN else c
+        d = 1.0 / d; de = d * c; h *= de
+        if abs(de - 1.0) < EPS:
+            break
+    return h
+
+
+def _betai(a, b, x):
+    """Regularized incomplete beta I_x(a,b), scipy-free."""
+    if x <= 0.0:
+        return 0.0
+    if x >= 1.0:
+        return 1.0
+    import math
+    bt = math.exp(math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
+                  + a * math.log(x) + b * math.log(1.0 - x))
+    if x < (a + 1.0) / (a + b + 2.0):
+        return bt * _betacf(a, b, x) / a
+    return 1.0 - bt * _betacf(b, a, 1.0 - x) / b
+
+
 def _cp_upper(k, n, alpha=0.05):
-    """Two-sided (1-alpha) Clopper-Pearson UPPER bound on a binomial proportion."""
+    """Two-sided (1-alpha) Clopper-Pearson UPPER bound on a binomial proportion.
+
+    Upper = the (1-alpha/2) quantile of Beta(k+1, n-k), i.e. the u solving
+    I_u(k+1, n-k) = 1-alpha/2 (bisection on the increasing regularized incomplete
+    beta). scipy-free so it runs in the pinned venv. k=0 uses the closed form."""
     if n == 0:
         return None
-    if k == 0:                       # closed form; avoids a scipy dependency for our case
+    if k >= n:
+        return 1.0
+    if k == 0:
         return 1.0 - (alpha / 2) ** (1.0 / n)
-    from scipy.stats import beta    # only needed if a non-genuine verdict appears
-    return float(beta.ppf(1 - alpha / 2, k + 1, n - k))
+    target, lo, hi = 1.0 - alpha / 2, 0.0, 1.0
+    for _ in range(100):
+        mid = 0.5 * (lo + hi)
+        if _betai(k + 1, n - k, mid) > target:
+            hi = mid
+        else:
+            lo = mid
+    return 0.5 * (lo + hi)
 
 
 def _cohen_kappa(a, b):
@@ -107,8 +207,15 @@ def main():
     ap.add_argument("rater1", nargs="?")
     ap.add_argument("rater2", nargs="?")
     ap.add_argument("--reported-all-genuine", action="store_true")
+    ap.add_argument("--census", metavar="RATER.json",
+                    help="single external rater over the --census worksheet (all distinct prompts)")
     ap.add_argument("--out", default="results/campaign/second_rater.json")
     args = ap.parse_args()
+
+    if args.census:
+        out = args.out if args.out != "results/campaign/second_rater.json" \
+            else "results/campaign/external_census.json"
+        return run_census(args.census, out)
 
     picks = canonical_sample()
     provenance = "raw rater exports"
